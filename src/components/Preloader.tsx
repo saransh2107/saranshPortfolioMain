@@ -32,7 +32,11 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
     <motion.div
       style={{
         position: 'fixed',
-        inset: 0,
+        top: 0, left: 0, right: 0,
+        height: '100dvh',
+        minHeight: '100vh',
+        padding: '0 16px',
+        boxSizing: 'border-box',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
@@ -46,13 +50,13 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
       transition={phase === 'exit' ? { duration: 0.65, ease: [0.76, 0, 0.24, 1] } : {}}
     >
       {/* Center piece: lightning bolt + orbit rings */}
-      <div style={{ position: 'relative', width: 200, height: 200, marginBottom: 32 }}>
+      <div style={{ position: 'relative', width: 'min(200px, 52vw)', aspectRatio: '1 / 1', marginBottom: 'clamp(16px, 4vh, 32px)' }}>
         {/* Radial glow behind bolt */}
         <div style={{
           position: 'absolute',
           top: '50%', left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 150, height: 150,
+          width: '75%', height: '75%',
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(139,92,246,0.32) 0%, transparent 68%)',
           filter: 'blur(22px)',
@@ -60,8 +64,8 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
         }} />
 
         <svg
-          width="200"
-          height="200"
+          width="100%"
+          height="100%"
           viewBox="0 0 200 200"
           style={{ position: 'absolute', inset: 0, overflow: 'visible' }}
         >
@@ -129,7 +133,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
       </div>
 
       {/* Name with letter stagger */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, userSelect: 'none', marginBottom: 10 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'baseline', columnGap: 'clamp(8px, 3vw, 16px)', userSelect: 'none', marginBottom: 10 }}>
         <div style={{ display: 'flex' }}>
           {FIRST.map((l, i) => (
             <motion.span
@@ -138,7 +142,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.55, delay: 0.3 + i * 0.055, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                fontSize: 38, fontWeight: 900, letterSpacing: '-0.02em',
+                fontSize: 'clamp(28px, 9vw, 38px)', fontWeight: 900, letterSpacing: '-0.02em',
                 color: '#f1f5f9', fontFamily: 'Inter, sans-serif',
               }}
             >
@@ -154,7 +158,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.55, delay: 0.62 + i * 0.055, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                fontSize: 38, fontWeight: 900, letterSpacing: '-0.02em',
+                fontSize: 'clamp(28px, 9vw, 38px)', fontWeight: 900, letterSpacing: '-0.02em',
                 background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text', fontFamily: 'Inter, sans-serif',
@@ -173,8 +177,9 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
         transition={{ delay: 1.05, duration: 0.5 }}
         style={{
           margin: 0,
-          fontSize: 11,
-          letterSpacing: '0.28em',
+          fontSize: 'clamp(9px, 2.8vw, 11px)',
+          letterSpacing: 'clamp(0.14em, 1vw, 0.28em)',
+          textAlign: 'center',
           textTransform: 'uppercase',
           color: 'rgba(148,163,184,0.55)',
           fontFamily: 'monospace',
@@ -190,10 +195,10 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
         transition={{ delay: 0.45 }}
         style={{
           position: 'absolute',
-          bottom: 48,
+          bottom: 'max(24px, env(safe-area-inset-bottom, 0px))',
           left: 0,
           right: 0,
-          padding: '0 48px',
+          padding: '0 clamp(20px, 6vw, 48px)',
         }}
       >
         <div style={{

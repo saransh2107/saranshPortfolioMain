@@ -1,8 +1,11 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { useExperience, experienceLabel } from '../hooks/useExperience'
+
+const pad = (n: number) => String(n).padStart(2, '0')
 
 const stats = [
-  { value: '4.5+', label: 'Years of Experience' },
+  { value: '', label: 'Years of Experience', live: true },
   { value: '6',    label: 'Certifications' },
   { value: '20+',  label: 'Projects Delivered' },
   { value: '100%', label: 'Client Satisfaction' },
@@ -13,6 +16,7 @@ const tags = ['Apex', 'LWC', 'Flow', 'Data Cloud', 'Agentforce', 'SOQL', 'REST A
 export default function About() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
+  const exp = useExperience()
   const v = (d = 0) => ({ initial: { opacity: 0, y: 20 }, animate: inView ? { opacity: 1, y: 0 } : {}, transition: { duration: 0.5, delay: d } })
 
   return (
@@ -27,7 +31,7 @@ export default function About() {
             </motion.h2>
             <motion.div {...v(0.1)} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <p style={{ color: 'var(--fg-2)', fontSize: 15, lineHeight: 1.75 }}>
-                I'm a <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>Salesforce Developer</strong> with 4.5 years of experience designing and delivering enterprise-grade platform solutions, specialising in Apex, Lightning Web Components, and declarative automation.
+                I'm a <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>Salesforce Developer</strong> with {experienceLabel(exp)}+ years of experience designing and delivering enterprise-grade platform solutions, specialising in Apex, Lightning Web Components, and declarative automation.
               </p>
               <p style={{ color: 'var(--fg-2)', fontSize: 15, lineHeight: 1.75 }}>
                 Recent work spans <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>Data Cloud</strong> implementations, <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>Agentforce</strong> agent configuration, and Marketing Cloud journeys — bridging Salesforce AI with real-world business outcomes.
@@ -47,8 +51,25 @@ export default function About() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-2)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
               >
-                <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--accent)', lineHeight: 1, marginBottom: 8 }}>{s.value}</div>
+                <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--accent)', lineHeight: 1, marginBottom: 8, fontVariantNumeric: 'tabular-nums' }}>
+                  {s.live ? exp.decimal.toFixed(2) : s.value}
+                </div>
                 <div style={{ fontSize: 12, color: 'var(--fg-3)', lineHeight: 1.4 }}>{s.label}</div>
+                {s.live && (
+                  <div style={{ marginTop: 12, display: 'flex', gap: 6, fontVariantNumeric: 'tabular-nums' }}>
+                    {[
+                      { v: exp.totalDays.toLocaleString(), l: 'days' },
+                      { v: pad(exp.remHours), l: 'hrs' },
+                      { v: pad(exp.remMinutes), l: 'min' },
+                      { v: pad(exp.remSeconds), l: 'sec' },
+                    ].map(u => (
+                      <div key={u.l} style={{ flex: u.l === 'days' ? '1.6 1 0' : '1 1 0', minWidth: 0, textAlign: 'center', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 2px' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--fg)', lineHeight: 1.2 }}>{u.v}</div>
+                        <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--fg-3)' }}>{u.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>

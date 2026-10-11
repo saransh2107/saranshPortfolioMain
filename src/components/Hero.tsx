@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { useExperience, experienceLabel } from '../hooks/useExperience'
 
 const fade = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -68,6 +69,7 @@ function Avatar() {
 const FULL_NAME = 'Saransh Batham'
 
 export default function Hero() {
+  const exp = useExperience()
   const [displayedName, setDisplayedName] = useState('')
   const [nameDone, setNameDone] = useState(false)
 
@@ -125,8 +127,26 @@ export default function Hero() {
 
             {/* Role */}
             <motion.p {...fade(0.26)} style={{ fontSize: 16, fontWeight: 500, color: 'var(--accent)', marginBottom: 20, letterSpacing: '-0.01em' }}>
-              Salesforce Developer · 4.5 Years Experience
+              Salesforce Developer · {experienceLabel(exp)}+ Years Experience
             </motion.p>
+
+            {/* Live experience ticker */}
+            <motion.div {...fade(0.3)} style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 22, padding: '8px 14px', borderRadius: 12, background: 'linear-gradient(135deg, rgba(139,92,246,0.16), rgba(99,102,241,0.08))', border: '1px solid rgba(139,92,246,0.45)', boxShadow: '0 0 22px rgba(139,92,246,0.22)' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)' }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e', animation: 'tw-blink 1.6s ease-in-out infinite' }} />
+                Live XP
+              </span>
+              <span style={{ display: 'inline-flex', gap: 8, fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', color: 'var(--fg)', fontSize: 14, fontWeight: 700 }}>
+                {[
+                  { v: exp.totalDays.toLocaleString(), l: 'd' },
+                  { v: String(exp.remHours).padStart(2, '0'), l: 'h' },
+                  { v: String(exp.remMinutes).padStart(2, '0'), l: 'm' },
+                  { v: String(exp.remSeconds).padStart(2, '0'), l: 's' },
+                ].map(u => (
+                  <span key={u.l}>{u.v}<span style={{ color: 'var(--accent)', fontSize: 11, marginLeft: 2 }}>{u.l}</span></span>
+                ))}
+              </span>
+            </motion.div>
 
             {/* Bio */}
             <motion.p {...fade(0.33)} style={{ fontSize: 15, lineHeight: 1.75, color: 'var(--fg-2)', marginBottom: 32, maxWidth: 460 }}>

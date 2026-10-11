@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
+import { calcExperience } from '../hooks/useExperience'
 
 const COMMANDS: Record<string, () => string[]> = {
   help: () => [
@@ -28,7 +29,7 @@ const COMMANDS: Record<string, () => string[]> = {
     '  Saransh Batham',
     '  ─────────────────────────────────',
     '  Role      → Salesforce Developer',
-    '  XP        → 4.5 years',
+    `  XP        → ${calcExperience().decimal.toFixed(2)} years`,
     '  Location  → India 🇮🇳',
     '  Status    → Open to opportunities',
     '  Stack     → Apex · LWC · Flow · Data Cloud',
