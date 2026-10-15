@@ -99,11 +99,24 @@
       ]
     }
     </script>
+
+    <style>
+      .boot-screen { position: fixed; inset: 0; z-index: 1; background: radial-gradient(ellipse at 50% 0%, #15122b 0%, #080810 60%); }
+      .seo-fallback { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    </style>
+    <noscript>
+      <style>
+        .boot-screen { display: none; }
+        .seo-fallback { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; max-width: 720px; margin: 0 auto; padding: 96px 24px; font-family: system-ui, sans-serif; }
+      </style>
+    </noscript>
   </head>
   <body>
     <div id="root">
-      <!-- Static content for crawlers and no-JS visitors; React replaces it on load -->
-      <main style="max-width:720px;margin:0 auto;padding:96px 24px;font-family:system-ui,sans-serif;background:#0c0c0f;color:#f0f0f5">
+      <!-- Static content for crawlers and no-JS visitors; React replaces it on load.
+           Visually hidden behind a backdrop matching the preloader so there's no flash. -->
+      <div class="boot-screen"></div>
+      <main class="seo-fallback">
         <h1>Saransh Batham — Salesforce Developer</h1>
         <p>6× certified Salesforce Developer from India with 4+ years of experience building enterprise solutions with Apex, Lightning Web Components (LWC), Flow, Data Cloud, Agentforce and Marketing Cloud.</p>
         <h2>Certifications</h2>

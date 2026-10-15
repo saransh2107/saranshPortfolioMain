@@ -6,9 +6,20 @@ import SkillsBanner from '../components/SkillsBanner'
 import SalesforceQuiz from '../components/SalesforceQuiz'
 import BlogPreview from '../components/BlogPreview'
 import Contact from '../components/Contact'
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useSeo } from '../hooks/useSeo'
 
 export default function Home() {
+  const { hash } = useLocation()
+
+  // Arriving from another page via /#section: scroll to it once the sections are rendered
+  useEffect(() => {
+    if (!hash) return
+    const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 50)
+    return () => clearTimeout(t)
+  }, [hash])
+
   useSeo({
     title: 'Saransh Batham — Salesforce Developer | Apex, LWC, Agentforce, Data Cloud',
     description: 'Saransh Batham is a 6× certified Salesforce Developer from India with 4+ years building enterprise solutions in Apex, Lightning Web Components, Flow, Data Cloud and Agentforce. Creator of the SF Impact Analyzer Chrome extension.',

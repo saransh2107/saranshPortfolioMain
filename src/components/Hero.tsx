@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useExperience, experienceLabel } from '../hooks/useExperience'
+import { useBlogPosts } from '../hooks/useBlogPosts'
 
 const fade = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -67,9 +69,15 @@ function Avatar() {
 }
 
 const FULL_NAME = 'Saransh Batham'
+const NEW_POST_DAYS = 4
 
 export default function Hero() {
   const exp = useExperience()
+  const { posts } = useBlogPosts(1)
+  const [now] = useState(Date.now)
+  const latest = posts[0]
+  const ageDays = latest?.Published_Date__c ? (now - Date.parse(latest.Published_Date__c)) / 86_400_000 : Infinity
+  const newPost = ageDays >= -1 && ageDays <= NEW_POST_DAYS ? latest : null
   const [displayedName, setDisplayedName] = useState('')
   const [nameDone, setNameDone] = useState(false)
 
@@ -181,13 +189,26 @@ export default function Hero() {
                 View my work
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12l7 7 7-7"/></svg>
               </a>
-              <a href="/blog"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500, color: 'var(--fg-2)', border: '1px solid var(--border-2)', textDecoration: 'none', transition: 'color .15s, background .15s' }}
+              <Link to={newPost ? `/blog/${newPost.Slug__c}` : '/blog'}
+                className={newPost ? 'blog-btn-new' : undefined}
+                title={newPost ? `New post: ${newPost.Title__c}` : undefined}
+                style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500, color: newPost ? 'var(--fg)' : 'var(--fg-2)', border: `1px solid ${newPost ? 'rgba(139,92,246,0.6)' : 'var(--border-2)'}`, textDecoration: 'none', transition: 'color .15s, background .15s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fg)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-2)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fg-2)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = newPost ? 'var(--fg)' : 'var(--fg-2)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >
                 Read blog
-              </a>
+                {newPost && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 14 }}
+                    className="blog-new-badge"
+                    style={{ position: 'absolute', zIndex: 1, top: -9, right: -10, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', color: '#fff', background: 'linear-gradient(135deg, #8b5cf6, #ec4899)', borderRadius: 99, padding: '2px 7px', boxShadow: '0 2px 10px rgba(236,72,153,0.45)' }}
+                  >
+                    NEW
+                  </motion.span>
+                )}
+              </Link>
               <a href="/resume.pdf" download
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500, color: 'var(--fg-2)', border: '1px solid var(--border-2)', textDecoration: 'none', transition: 'color .15s, background .15s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fg)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-2)' }}
@@ -222,6 +243,19 @@ export default function Hero() {
           0%, 100% { opacity: 1 }
           50% { opacity: 0 }
         }
+        .blog-btn-new { animation: blog-glow 2.2s ease-in-out infinite; }
+        @keyframes blog-glow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); }
+          50% { box-shadow: 0 0 18px 2px rgba(139,92,246,0.4); }
+        }
+        .blog-new-badge::after {
+          content: ''; position: absolute; inset: 0; border-radius: 99px;
+          background: inherit; z-index: -1; animation: blog-ping 1.8s ease-out infinite;
+        }
+        @keyframes blog-ping {
+          from { transform: scale(1); opacity: .7; }
+          to   { transform: scale(1.8); opacity: 0; }
+        }
         @keyframes nudge-shine {
           0%, 60% { transform: translateX(-120%) }
           100% { transform: translateX(220%) }
@@ -243,7 +277,7 @@ export default function Hero() {
           .project-nudge { gap: 6px !important; padding: 3px 10px 3px 3px !important; max-width: 100%; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .project-nudge::after, .nudge-arrow { animation: none; }
+          .project-nudge::after, .nudge-arrow, .blog-btn-new, .blog-new-badge::after { animation: none; }
         }
         @media (max-width: 640px) {
           .hero-badges { justify-content: center; }

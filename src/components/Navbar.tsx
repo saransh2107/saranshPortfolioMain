@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 
 const links = [
@@ -19,6 +19,11 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen]   = useState(false)
   const [isMobile, setIsMobile]   = useState(window.innerWidth < 768)
   const location = useLocation()
+  const navigate = useNavigate()
+  // From another page, route back home in-app (no full reload) and let Home scroll to the section
+  const goToSection = (e: React.MouseEvent, href: string) => {
+    if (location.pathname !== '/') { e.preventDefault(); navigate(href) }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -67,7 +72,7 @@ export default function Navbar() {
             >{l.label}</Link>
           ) : (
             <a key={l.label} href={l.href}
-              onClick={() => { if (l.href.startsWith('/#') && location.pathname !== '/') window.location.href = l.href }}
+              onClick={e => goToSection(e, l.href)}
               style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg-2)', padding: '6px 12px', borderRadius: 8, textDecoration: 'none', transition: 'color .15s, background .15s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fg)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-2)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fg-2)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -122,7 +127,7 @@ export default function Navbar() {
               style={{ display: 'block', padding: '10px 0', fontSize: 15, fontWeight: 500, color: 'var(--fg-2)', textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
             >{l.label}</Link>
           ) : (
-            <a key={l.label} href={l.href} onClick={() => setMenuOpen(false)}
+            <a key={l.label} href={l.href} onClick={e => { setMenuOpen(false); goToSection(e, l.href) }}
               style={{ display: 'block', padding: '10px 0', fontSize: 15, fontWeight: 500, color: 'var(--fg-2)', textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
             >{l.label}</a>
           ))}

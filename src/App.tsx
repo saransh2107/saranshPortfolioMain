@@ -12,7 +12,8 @@ const BlogList   = lazy(() => import('./pages/BlogList'))
 const BlogDetail = lazy(() => import('./pages/BlogDetail'))
 
 export default function App() {
-  const [loaded, setLoaded] = useState(false)
+  // The intro only plays when a visitor lands on the home page, not on a blog link or after in-app navigation
+  const [loaded, setLoaded] = useState(() => window.location.pathname !== '/')
   const [terminalOpen, setTerminalOpen] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [hintDismissed, setHintDismissed] = useState(false)

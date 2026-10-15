@@ -42,12 +42,25 @@ async function getSFToken() {
   return cachedToken
 }
 
+// Retries once with a fresh token if the cached session has expired
+async function sfFetch(path, init = {}) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { access_token, instance_url } = await getSFToken()
+    const res = await fetch(`${instance_url}${path}`, {
+      ...init,
+      headers: { ...init.headers, Authorization: `Bearer ${access_token}` },
+    })
+    if (res.status === 401 && attempt === 0) {
+      cachedToken = null
+      tokenExpiry = 0
+      continue
+    }
+    return res
+  }
+}
+
 async function sfQuery(soql) {
-  const { access_token, instance_url } = await getSFToken()
-  const res = await fetch(
-    `${instance_url}/services/data/v62.0/query?q=${encodeURIComponent(soql)}`,
-    { headers: { Authorization: `Bearer ${access_token}` } }
-  )
+  const res = await sfFetch(`/services/data/v62.0/query?q=${encodeURIComponent(soql)}`)
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`SOQL failed (${res.status}): ${text}`)
@@ -108,10 +121,9 @@ const server = createServer(async (req, res) => {
     if (req.method === 'POST' && path === '/api/contact') {
       const { name, email, message } = await parseBody(req)
       if (!name || !email || !message) return json(res, 400, { error: 'All fields required' })
-      const { access_token, instance_url } = await getSFToken()
-      const sfRes = await fetch(`${instance_url}/services/data/v62.0/sobjects/Case`, {
+      const sfRes = await sfFetch('/services/data/v62.0/sobjects/Case', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ Subject: 'Portfolio Contact', Description: message, SuppliedName: name, SuppliedEmail: email, Origin: 'Web' }),
       })
       if (!sfRes.ok) throw new Error('Case creation failed')

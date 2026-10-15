@@ -25,12 +25,25 @@ export async function getSalesforceToken() {
   return cachedToken
 }
 
+// Calls the Salesforce REST API; if the cached session has expired, logs in again and retries once
+export async function sfFetch(path, init = {}) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { access_token, instance_url } = await getSalesforceToken()
+    const res = await fetch(`${instance_url}${path}`, {
+      ...init,
+      headers: { ...init.headers, Authorization: `Bearer ${access_token}` },
+    })
+    if (res.status === 401 && attempt === 0) {
+      cachedToken = null
+      tokenExpiry = 0
+      continue
+    }
+    return res
+  }
+}
+
 export async function sfQuery(soql) {
-  const { access_token, instance_url } = await getSalesforceToken()
-  const res = await fetch(
-    `${instance_url}/services/data/v62.0/query?q=${encodeURIComponent(soql)}`,
-    { headers: { Authorization: `Bearer ${access_token}` } }
-  )
+  const res = await sfFetch(`/services/data/v62.0/query?q=${encodeURIComponent(soql)}`)
   if (!res.ok) throw new Error(`SOQL query failed: ${res.status}`)
   return res.json()
 }

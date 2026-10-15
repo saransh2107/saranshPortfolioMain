@@ -1,4 +1,4 @@
-import { getSalesforceToken } from './_sf.js'
+import { sfFetch } from './_sf.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -9,14 +9,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { access_token, instance_url } = await getSalesforceToken()
-
-    const sfRes = await fetch(`${instance_url}/services/data/v62.0/sobjects/Case`, {
+    const sfRes = await sfFetch('/services/data/v62.0/sobjects/Case', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         Subject: 'Portfolio Contact',
         Description: message,
