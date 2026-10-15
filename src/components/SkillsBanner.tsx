@@ -46,7 +46,7 @@ export default function SkillsBanner() {
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section id="skills" className="section" ref={ref} style={{ borderTop: '1px solid var(--border)', overflow: 'hidden', paddingLeft: 0, paddingRight: 0 }}>
+    <section id="skills" className="section" ref={ref} style={{ overflow: 'hidden', paddingLeft: 0, paddingRight: 0 }}>
       <div className="container" style={{ marginBottom: 40 }}>
         <motion.p
           initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5 }}

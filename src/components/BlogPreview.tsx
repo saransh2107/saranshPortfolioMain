@@ -61,7 +61,7 @@ export default function BlogPreview() {
   const { posts, loading, error } = useBlogPosts(4)
 
   return (
-    <section id="blog" className="section" ref={ref} style={{ borderTop: '1px solid var(--border)' }}>
+    <section id="blog" className="section" ref={ref}>
       <div className="container">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40 }}>
           <div>
@@ -89,8 +89,9 @@ export default function BlogPreview() {
         <div style={{ borderTop: '1px solid var(--border)' }} />
 
         {loading && [1,2,3].map(i => (
-          <div key={i} style={{ borderBottom: '1px solid var(--border)', padding: '20px 0', display: 'grid', gridTemplateColumns: '90px 1fr auto', gap: 24 }}>
-            {[80,300,50].map((w, j) => <div key={j} style={{ height: 14, background: 'var(--bg-2)', borderRadius: 4, width: w, animation: 'pulse 1.5s infinite' }} />)}
+          <div key={i} style={{ borderBottom: '1px solid var(--border)', padding: '20px 0', display: 'grid', gridTemplateColumns: '90px minmax(0, 1fr) auto', gap: 24 }}>
+            {/* Middle bar shrinks on phones so the skeleton never overflows the viewport */}
+            {[80,300,50].map((w, j) => <div key={j} style={{ height: 14, background: 'var(--bg-2)', borderRadius: 4, width: '100%', maxWidth: w, animation: 'pulse 1.5s infinite' }} />)}
           </div>
         ))}
 

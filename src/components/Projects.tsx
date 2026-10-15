@@ -105,7 +105,7 @@ export default function Projects() {
   const v = (d = 0) => ({ initial: { opacity: 0, y: 20 }, animate: inView ? { opacity: 1, y: 0 } : {}, transition: { duration: 0.5, delay: d } })
 
   return (
-    <section id="projects" className="section" ref={ref} style={{ borderTop: '1px solid var(--border)' }}>
+    <section id="projects" className="section" ref={ref}>
       <div className="container">
         <motion.p {...v(0)} className="section-label">03 — Projects</motion.p>
         <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 8 }}>

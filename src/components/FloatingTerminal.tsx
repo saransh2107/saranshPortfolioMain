@@ -75,6 +75,7 @@ const COMMANDS: Record<string, () => string[]> = {
     '  ───────────────',
     '  LinkedIn  → linkedin.com/in/batham',
     '  GitHub    → github.com/saransh2107',
+    '  Trailhead → salesforce.com/trailblazer/saranshbatham21',
     '  Email     → Use the contact form ↓',
     '',
   ],

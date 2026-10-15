@@ -78,7 +78,7 @@ export default function SalesforceQuiz() {
   const scoreMsg = SCORE_MESSAGES.find(m => score >= m.min && score <= m.max)!
 
   return (
-    <section id="quiz" className="section" ref={ref} style={{ borderTop: '1px solid var(--border)' }}>
+    <section id="quiz" className="section" ref={ref}>
       <div className="container">
         <motion.p {...v(0)} className="section-label">05 — Interactive</motion.p>
         <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 8 }}>

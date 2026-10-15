@@ -29,11 +29,11 @@ export default function About() {
   const v = (d = 0) => ({ initial: { opacity: 0, y: 20 }, animate: inView ? { opacity: 1, y: 0 } : {}, transition: { duration: 0.5, delay: d } })
 
   return (
-    <section id="about" className="section" ref={ref} style={{ borderTop: '1px solid var(--border)' }}>
+    <section id="about" className="section" ref={ref}>
       <div className="container">
         <motion.p {...v(0)} className="section-label">01 — About</motion.p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'start' }} className="about-grid">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '64px', alignItems: 'start' }} className="about-grid">
           <div>
             <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', lineHeight: 1.2, marginBottom: 24 }}>
               Building enterprise<br />Salesforce solutions
@@ -69,9 +69,9 @@ export default function About() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
             {stats.map((s, i) => (
-              <motion.div key={s.label} {...v(0.1 + i * 0.06)}
+              <motion.div key={s.label} {...v(0.1 + i * 0.06)} className={s.live ? 'stat-live' : undefined}
                 style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 14, padding: '28px 24px' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-2)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
@@ -102,7 +102,8 @@ export default function About() {
       </div>
       <style>{`.tech-tag { transition: color .2s, border-color .2s, box-shadow .2s, background .2s; }
 .tech-tag:hover { color: var(--fg) !important; border-color: var(--tag) !important; background: color-mix(in srgb, var(--tag) 22%, transparent) !important; box-shadow: 0 6px 20px color-mix(in srgb, var(--tag) 35%, transparent); }
-.about-grid { @media (max-width:640px) { grid-template-columns: 1fr !important; gap: 40px !important; } }`}</style>
+.about-grid { @media (max-width:640px) { grid-template-columns: minmax(0, 1fr) !important; gap: 40px !important; } }
+@media (max-width:400px) { .stat-live { grid-column: 1 / -1; } }`}</style>
     </section>
   )
 }

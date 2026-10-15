@@ -28,7 +28,7 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" className="section" ref={ref} style={{ borderTop: '1px solid var(--border)' }}>
+    <section id="contact" className="section" ref={ref}>
       <div className="container">
         <div style={{ maxWidth: 560 }}>
           <motion.p {...v(0)} className="section-label">07 — Contact</motion.p>
