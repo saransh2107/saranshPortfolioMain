@@ -1,10 +1,35 @@
 import { motion } from 'framer-motion'
 import { Link, useParams } from 'react-router-dom'
+import { useMemo } from 'react'
 import { useBlogPost } from '../hooks/useBlogPosts'
+import { useSeo, SITE_URL } from '../hooks/useSeo'
 
 export default function BlogDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { post, loading, error } = useBlogPost(slug || '')
+
+  const jsonLd = useMemo(() => post && {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.Title__c,
+    description: post.Summary__c,
+    image: post.Cover_Image_URL__c || `${SITE_URL}/og-image.png`,
+    datePublished: post.Published_Date__c,
+    keywords: post.Tags__c || undefined,
+    url: `${SITE_URL}/blog/${post.Slug__c}`,
+    mainEntityOfPage: `${SITE_URL}/blog/${post.Slug__c}`,
+    author: { '@type': 'Person', '@id': `${SITE_URL}/#person`, name: 'Saransh Batham', url: `${SITE_URL}/` },
+    publisher: { '@type': 'Person', '@id': `${SITE_URL}/#person`, name: 'Saransh Batham' },
+  }, [post])
+
+  useSeo({
+    title: post ? `${post.Title__c} | Saransh Batham` : 'Blog | Saransh Batham — Salesforce Developer',
+    description: post?.Summary__c || 'Salesforce development articles by Saransh Batham.',
+    path: `/blog/${slug || ''}`,
+    image: post?.Cover_Image_URL__c,
+    type: 'article',
+    jsonLd: jsonLd || undefined,
+  })
 
   if (loading) {
     return (

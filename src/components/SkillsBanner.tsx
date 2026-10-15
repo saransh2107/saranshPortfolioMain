@@ -51,7 +51,7 @@ export default function SkillsBanner() {
         <motion.p
           initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5 }}
           className="section-label"
-        >03 — Skills & Technologies</motion.p>
+        >04 — Skills & Technologies</motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.05 }}
           style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)' }}

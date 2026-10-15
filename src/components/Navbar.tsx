@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext'
 const links = [
   { label: 'About',    href: '/#about' },
   { label: 'Certs',   href: '/#certifications' },
+  { label: 'Projects', href: '/#projects' },
   { label: 'Skills',   href: '/#skills' },
   { label: 'Quiz',     href: '/#quiz' },
   { label: 'Blog',     href: '/blog' },

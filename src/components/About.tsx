@@ -11,7 +11,16 @@ const stats = [
   { value: '100%', label: 'Client Satisfaction' },
 ]
 
-const tags = ['Apex', 'LWC', 'Flow', 'Data Cloud', 'Agentforce', 'SOQL', 'REST APIs', 'Salesforce CLI']
+const tags = [
+  { name: 'Apex',           color: '#6366f1', desc: 'Server-side logic' },
+  { name: 'LWC',            color: '#0ea5e9', desc: 'Lightning Web Components' },
+  { name: 'Flow',           color: '#22c55e', desc: 'Declarative automation' },
+  { name: 'Data Cloud',     color: '#8b5cf6', desc: 'Unified customer data' },
+  { name: 'Agentforce',     color: '#f59e0b', desc: 'Autonomous AI agents' },
+  { name: 'SOQL',           color: '#ec4899', desc: 'Salesforce queries' },
+  { name: 'REST APIs',      color: '#14b8a6', desc: 'Integrations' },
+  { name: 'Salesforce CLI', color: '#f97316', desc: 'Dev & deploy tooling' },
+]
 
 export default function About() {
   const ref = useRef(null)
@@ -37,11 +46,27 @@ export default function About() {
                 Recent work spans <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>Data Cloud</strong> implementations, <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>Agentforce</strong> agent configuration, and Marketing Cloud journeys — bridging Salesforce AI with real-world business outcomes.
               </p>
             </motion.div>
-            <motion.div {...v(0.15)} style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 28 }}>
-              {tags.map(t => (
-                <span key={t} style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 10px' }}>{t}</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 28 }}>
+              {tags.map((t, i) => (
+                <motion.span key={t.name} className="tech-tag" title={t.desc}
+                  initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                  animate={inView ? { opacity: 1, scale: 1, y: 0 } : {}}
+                  transition={{ type: 'spring', stiffness: 260, damping: 18, delay: 0.2 + i * 0.06 }}
+                  whileHover={{ y: -3, scale: 1.06 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    '--tag': t.color,
+                    display: 'inline-flex', alignItems: 'center', gap: 7,
+                    fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)',
+                    color: 'var(--fg-2)', background: t.color + '14', border: `1px solid ${t.color}40`,
+                    borderRadius: 8, padding: '5px 11px', cursor: 'default',
+                  } as React.CSSProperties}
+                >
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: t.color, boxShadow: `0 0 6px ${t.color}`, flexShrink: 0 }} />
+                  {t.name}
+                </motion.span>
               ))}
-            </motion.div>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -75,7 +100,9 @@ export default function About() {
           </div>
         </div>
       </div>
-      <style>{`.about-grid { @media (max-width:640px) { grid-template-columns: 1fr !important; gap: 40px !important; } }`}</style>
+      <style>{`.tech-tag { transition: color .2s, border-color .2s, box-shadow .2s, background .2s; }
+.tech-tag:hover { color: var(--fg) !important; border-color: var(--tag) !important; background: color-mix(in srgb, var(--tag) 22%, transparent) !important; box-shadow: 0 6px 20px color-mix(in srgb, var(--tag) 35%, transparent); }
+.about-grid { @media (max-width:640px) { grid-template-columns: 1fr !important; gap: 40px !important; } }`}</style>
     </section>
   )
 }

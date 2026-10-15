@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useBlogPosts } from '../hooks/useBlogPosts'
+import { useSeo } from '../hooks/useSeo'
 import type { BlogPost } from '../types/blog'
 
 function PostRow({ post, index }: { post: BlogPost; index: number }) {
@@ -54,6 +55,11 @@ function PostRow({ post, index }: { post: BlogPost; index: number }) {
 
 export default function BlogList() {
   const { posts, loading, error } = useBlogPosts()
+  useSeo({
+    title: 'Salesforce Blog — Apex, LWC, Agentforce Tips | Saransh Batham',
+    description: 'Practical Salesforce development articles by Saransh Batham — Apex, Lightning Web Components, Flow, Data Cloud and Agentforce.',
+    path: '/blog',
+  })
   const [search, setSearch]       = useState('')
   const [activeTag, setActiveTag] = useState<string | null>(null)
 

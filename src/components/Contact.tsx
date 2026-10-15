@@ -31,7 +31,7 @@ export default function Contact() {
     <section id="contact" className="section" ref={ref} style={{ borderTop: '1px solid var(--border)' }}>
       <div className="container">
         <div style={{ maxWidth: 560 }}>
-          <motion.p {...v(0)} className="section-label">06 — Contact</motion.p>
+          <motion.p {...v(0)} className="section-label">07 — Contact</motion.p>
           <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 12 }}>
             Let's work together
           </motion.h2>
