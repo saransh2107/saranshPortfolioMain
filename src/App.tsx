@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Analytics } from '@vercel/analytics/react'
 import { ThemeProvider } from './context/ThemeContext'
 import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
@@ -59,6 +60,7 @@ export default function App() {
           </main>
           <Footer />
         </BrowserRouter>
+        <Analytics />
 
         {/* Floating terminal */}
         <AnimatePresence>

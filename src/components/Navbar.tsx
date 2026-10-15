@@ -55,7 +55,7 @@ export default function Navbar() {
             background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
             overflow: 'hidden', flexShrink: 0,
           }}>
-            <img src="/profile.webp" alt="SB" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 12%', transform: 'scale(1.6)', transformOrigin: 'center top' }} />
+            <img src="/profile.webp" alt="Saransh Batham" width={30} height={30} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 12%', transform: 'scale(1.6)', transformOrigin: 'center top' }} />
           </div>
           <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
             Saransh Batham

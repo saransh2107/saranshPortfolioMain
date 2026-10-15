@@ -47,7 +47,7 @@ function MockWindow() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-2)' }}>
         {['#ef4444', '#f59e0b', '#22c55e'].map(c => <span key={c} style={{ width: 9, height: 9, borderRadius: 99, background: c, opacity: .8 }} />)}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 10 }}>
-          <img src="/sf-impact-analyzer.png" alt="" width={14} height={14} style={{ borderRadius: 3 }} />
+          <img src="/sf-impact-analyzer.png" alt="SF Impact Analyzer logo" width={14} height={14} style={{ borderRadius: 3 }} />
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--fg-2)' }}>SF Impact Analyzer</span>
         </div>
       </div>

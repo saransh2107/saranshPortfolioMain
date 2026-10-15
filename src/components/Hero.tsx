@@ -165,7 +165,7 @@ export default function Hero() {
                 onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = 'none'; el.style.boxShadow = '0 0 18px rgba(59,130,246,0.2)' }}
               >
                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: '#fff', background: '#3b82f6', borderRadius: 99, padding: '2px 8px' }}>New</span>
-                <img src="/sf-impact-analyzer.png" alt="" width={16} height={16} style={{ borderRadius: 4 }} />
+                <img src="/sf-impact-analyzer.png" alt="SF Impact Analyzer logo" width={16} height={16} style={{ borderRadius: 4 }} />
                 <span className="nudge-long">Try my Chrome extension: <strong style={{ fontWeight: 600 }}>SF Impact Analyzer</strong></span>
                 <strong className="nudge-short" style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>SF Impact Analyzer</strong>
                 <svg className="nudge-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M13 5l7 7-7 7"/></svg>

@@ -21,8 +21,8 @@ export default function Home() {
   }, [hash])
 
   useSeo({
-    title: 'Saransh Batham — Salesforce Developer | Apex, LWC, Agentforce, Data Cloud',
-    description: 'Saransh Batham is a 6× certified Salesforce Developer from India with 4+ years building enterprise solutions in Apex, Lightning Web Components, Flow, Data Cloud and Agentforce. Creator of the SF Impact Analyzer Chrome extension.',
+    title: 'Saransh Batham — Salesforce Developer | LWC, Data Cloud',
+    description: '6× certified Salesforce Developer with 4+ years in Apex, Lightning Web Components, Data Cloud & Agentforce. Creator of the SF Impact Analyzer Chrome extension.',
     path: '/',
     type: 'profile',
   })
