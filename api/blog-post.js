@@ -1,4 +1,4 @@
-import { sfQuery } from '../_sf.js'
+import { sfQuery } from './_sf.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')

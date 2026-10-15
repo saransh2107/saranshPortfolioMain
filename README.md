@@ -168,7 +168,8 @@ portfolio/
 ├── api/                    # Vercel serverless functions (Salesforce proxy)
 │   ├── _sf.js              # Token cache + SOQL helper
 │   ├── blogs.js            # GET /api/blogs
-│   ├── blogs/[slug].js     # GET /api/blogs/:slug
+│   ├── blog-post.js        # GET /api/blogs/:slug (via rewrite in vercel.json)
+│   ├── sitemap.js          # GET /sitemap.xml (via rewrite in vercel.json)
 │   └── contact.js          # POST /api/contact
 ├── public/
 │   ├── profile.webp        # Hero profile photo 1
