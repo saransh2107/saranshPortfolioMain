@@ -194,15 +194,13 @@ export default function BlogDetail() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
             className="mb-10 overflow-hidden rounded-xl"
-            style={{
-              border: '1px solid var(--border)',
-              aspectRatio: '16/9',
-            }}
+            style={{ border: '1px solid var(--border)' }}
           >
+            {/* Natural aspect ratio, so wide banners and tall images aren't cropped */}
             <img
               src={post.Cover_Image_URL__c}
               alt={post.Title__c}
-              className="w-full h-full object-cover"
+              className="block w-full h-auto"
             />
           </motion.div>
         )}
