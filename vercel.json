@@ -3,6 +3,7 @@
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/api/blogs/:slug", "destination": "/api/blog-post?slug=:slug" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/diwali", "destination": "/diwali.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

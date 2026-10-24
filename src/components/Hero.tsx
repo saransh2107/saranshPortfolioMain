@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useExperience, experienceLabel } from '../hooks/useExperience'
 import { useBlogPosts } from '../hooks/useBlogPosts'
 import TrailheadIcon from './TrailheadIcon'
+import { isDiwaliOver } from '../diwali/expiry'
 
 const fade = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -158,6 +159,18 @@ export default function Hero() {
           <div style={{ minWidth: 0 }}>
             {/* Badges */}
             <motion.div {...fade(0.1)} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 24 }} className="hero-badges">
+              {/* Diwali greeting, hidden once the festival is over */}
+              {!isDiwaliOver() && (
+                <a href="/diwali"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 500, color: 'var(--fg)', background: 'linear-gradient(135deg, rgba(255,170,60,0.2), rgba(255,138,31,0.08))', border: '1px solid rgba(255,170,60,0.55)', borderRadius: 99, padding: '4px 12px 4px 4px', textDecoration: 'none', boxShadow: '0 0 18px rgba(255,160,50,0.25)', transition: 'transform .15s, box-shadow .15s' }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = 'translateY(-1px)'; el.style.boxShadow = '0 0 26px rgba(255,160,50,0.45)' }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = 'none'; el.style.boxShadow = '0 0 18px rgba(255,160,50,0.25)' }}
+                >
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: '#2a1203', background: 'linear-gradient(135deg, #ffd77a, #ff8a1f)', borderRadius: 99, padding: '2px 8px' }}>🪔 Diwali</span>
+                  <span>Happy Diwali! <strong style={{ fontWeight: 600 }}>Tap to light a cracker</strong></span>
+                  <span aria-hidden="true">🎆</span>
+                </a>
+              )}
               {/* Project nudge */}
               <a href="/#projects" className="project-nudge"
                 style={{ position: 'relative', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 500, color: 'var(--fg)', background: 'linear-gradient(135deg, rgba(59,130,246,0.16), rgba(29,78,216,0.08))', border: '1px solid rgba(59,130,246,0.45)', borderRadius: 99, padding: '4px 12px 4px 4px', textDecoration: 'none', boxShadow: '0 0 18px rgba(59,130,246,0.2)', transition: 'transform .15s, box-shadow .15s' }}
