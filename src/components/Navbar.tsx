@@ -2,9 +2,12 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
+import { useView } from '../context/ViewContext'
+import { CloudIcon } from '../salesforce/ui'
 
 const links = [
   { label: 'About',    href: '/#about' },
+  { label: 'Experience', href: '/#experience' },
   { label: 'Certs',   href: '/#certifications' },
   { label: 'Projects', href: '/#projects' },
   { label: 'Skills',   href: '/#skills' },
@@ -15,6 +18,7 @@ const links = [
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme()
+  const { setView } = useView()
   const [scrolled, setScrolled]   = useState(false)
   const [menuOpen, setMenuOpen]   = useState(false)
   const [isMobile, setIsMobile]   = useState(window.innerWidth < 768)
@@ -82,6 +86,23 @@ export default function Navbar() {
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Whole-site Salesforce view */}
+          <button
+            onClick={() => setView('salesforce')}
+            aria-label="Switch to Salesforce view"
+            title="View this portfolio as a Salesforce Lightning app"
+            style={{
+              height: 34, padding: isMobile ? '0 9px' : '0 12px', borderRadius: 999, border: '1px solid rgba(6,106,254,0.45)',
+              background: 'rgba(6,106,254,0.1)', color: theme === 'dark' ? '#6ea8ff' : '#0250d9', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', transition: 'background .15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(6,106,254,0.2)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(6,106,254,0.1)' }}
+          >
+            <CloudIcon size={15} />
+            {!isMobile && 'Salesforce view'}
+          </button>
+
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}

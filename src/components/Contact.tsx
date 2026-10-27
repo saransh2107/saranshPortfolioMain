@@ -1,5 +1,6 @@
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
+import { useContactForm } from '../hooks/useContactForm'
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', borderRadius: 10,
@@ -12,26 +13,15 @@ const inputStyle: React.CSSProperties = {
 export default function Contact() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
-  const [form, setForm] = useState({ name: '', email: '', message: '' })
-  const [status, setStatus] = useState<'idle'|'sending'|'sent'|'error'>('idle')
+  const { form, setForm, status, handleSubmit } = useContactForm()
 
   const v = (d = 0) => ({ initial: { opacity: 0, y: 20 }, animate: inView ? { opacity: 1, y: 0 } : {}, transition: { duration: 0.5, delay: d } })
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setStatus('sending')
-    try {
-      const r = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-      setStatus(r.ok ? 'sent' : 'error')
-      if (r.ok) setForm({ name: '', email: '', message: '' })
-    } catch { setStatus('error') }
-  }
 
   return (
     <section id="contact" className="section" ref={ref}>
       <div className="container">
         <div style={{ maxWidth: 560 }}>
-          <motion.p {...v(0)} className="section-label">07 — Contact</motion.p>
+          <motion.p {...v(0)} className="section-label">08 — Contact</motion.p>
           <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 12 }}>
             Let's work together
           </motion.h2>

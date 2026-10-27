@@ -1,9 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useExperience, experienceLabel } from '../hooks/useExperience'
 import { useBlogPosts } from '../hooks/useBlogPosts'
 import TrailheadIcon from './TrailheadIcon'
+import TrailBuddy from './TrailBuddy'
+import NightSky from './NightSky'
+import { useTheme } from '../context/ThemeContext'
 import { isDiwaliOver } from '../diwali/expiry'
 
 const fade = (delay = 0) => ({
@@ -11,64 +14,6 @@ const fade = (delay = 0) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.55, delay, ease: 'easeOut' as const },
 })
-
-const PHOTOS = [
-  { src: '/profile.webp',  pos: 'center 12%', scale: 1.6 },
-  { src: '/profile2.webp', pos: '52% 15%', scale: 1.3 },
-]
-
-function Avatar() {
-  const [idx, setIdx] = useState(0)
-
-  useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % PHOTOS.length), 10000)
-    return () => clearInterval(t)
-  }, [])
-
-  return (
-    <div style={{ position: 'relative', width: 220, height: 220, flexShrink: 0 }}>
-      {/* Gradient ring */}
-      <div style={{
-        position: 'absolute', inset: -3,
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 50%, #4c1d95 100%)',
-        padding: 3,
-      }}>
-        <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--bg)' }} />
-      </div>
-      {/* Photo with crossfade */}
-      <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden' }}>
-        <AnimatePresence mode="sync">
-          <motion.img
-            key={idx}
-            src={PHOTOS[idx].src}
-            alt="Saransh Batham"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.9 }}
-            style={{
-              position: 'absolute', inset: 0,
-              width: '100%', height: '100%',
-              objectFit: 'cover',
-              objectPosition: PHOTOS[idx].pos,
-              transform: `scale(${PHOTOS[idx].scale})`,
-              transformOrigin: 'center top',
-            }}
-          />
-        </AnimatePresence>
-      </div>
-      {/* Online dot */}
-      <div style={{
-        position: 'absolute', bottom: 12, right: 12,
-        width: 16, height: 16, borderRadius: '50%',
-        background: '#22c55e',
-        border: '2.5px solid var(--bg)',
-        boxShadow: '0 0 0 2px rgba(34,197,94,0.3)',
-      }} />
-    </div>
-  )
-}
 
 const BUILDS = [
   { text: 'Apex that scales',          color: '#6366f1' },
@@ -125,6 +70,7 @@ export default function Hero() {
   const newPost = ageDays >= -1 && ageDays <= NEW_POST_DAYS ? latest : null
   const [displayedName, setDisplayedName] = useState('')
   const [nameDone, setNameDone] = useState(false)
+  const stageRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let i = 0
@@ -140,25 +86,15 @@ export default function Hero() {
   }, [])
 
   return (
-    <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', paddingTop: 56 }}>
-      <div className="container">
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr',
-          gap: '64px',
-          alignItems: 'center',
-        }}
-          className="hero-grid"
-        >
-          {/* ── Avatar ── */}
-          <motion.div {...fade(0)}>
-            <Avatar />
-          </motion.div>
-
-          {/* ── Text ── */}
-          <div style={{ minWidth: 0 }}>
+    <section className="hero" style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', paddingTop: 56, overflow: 'hidden' }}>
+      <HeroBackdrop />
+      <div className="container" style={{ position: 'relative' }}>
+        <div className="hero-grid">
+          {/* ── Text: the stage Trail tours around ── */}
+          <div ref={stageRef} className="hero-stage">
+            <TrailBuddy stageRef={stageRef} />
             {/* Badges */}
-            <motion.div {...fade(0.1)} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 24 }} className="hero-badges">
+            <motion.div {...fade(0.1)} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 116 }} className="hero-badges">
               {/* Diwali greeting, hidden once the festival is over */}
               {!isDiwaliOver() && (
                 <a href="/diwali"
@@ -186,9 +122,9 @@ export default function Hero() {
             </motion.div>
 
             {/* Name */}
-            <motion.h1 {...fade(0.18)} style={{ fontSize: 'clamp(44px, 7vw, 72px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05, color: 'var(--fg)', marginBottom: 6 }}>
+            <motion.h1 {...fade(0.18)} style={{ fontSize: 'clamp(44px, 9vw, 84px)', fontWeight: 800, letterSpacing: '-0.045em', lineHeight: 1.05, color: 'var(--fg)', marginBottom: 10 }}>
               <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>{FULL_NAME} — Salesforce Developer</span>
-              <span aria-hidden="true">{displayedName}</span>
+              <span aria-hidden="true" data-buddy="name" className="hero-name">{displayedName}</span>
               <span aria-hidden="true" style={{
                 display: 'inline-block',
                 width: '3px',
@@ -225,18 +161,18 @@ export default function Hero() {
             </motion.div>
 
             {/* Bio */}
-            <motion.p {...fade(0.33)} style={{ fontSize: 15, lineHeight: 1.75, color: 'var(--fg-2)', marginBottom: 32, maxWidth: 460 }}>
+            <motion.p {...fade(0.33)} style={{ fontSize: 16, lineHeight: 1.75, color: 'var(--fg-2)', marginBottom: 28, maxWidth: 520 }}>
               Building enterprise Salesforce solutions — from Apex backends and Lightning Web Components to Data Cloud pipelines and Agentforce agents.
             </motion.p>
 
             {/* Rotating "I build …" line */}
-            <motion.div {...fade(0.38)} style={{ marginBottom: 36 }}>
+            <motion.div {...fade(0.38)} style={{ marginBottom: 150 }}>
               <BuildRotator />
             </motion.div>
 
             {/* CTAs */}
-            <motion.div {...fade(0.44)} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 40 }}>
-              <a href="/#projects"
+            <motion.div {...fade(0.44)} className="hero-ctas" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 56 }}>
+              <a href="/#projects" data-buddy="work"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#fff', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', textDecoration: 'none', transition: 'opacity .15s' }}
                 onMouseEnter={e => (e.currentTarget.style.opacity = '.88')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
@@ -244,7 +180,7 @@ export default function Hero() {
                 View my work
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12l7 7 7-7"/></svg>
               </a>
-              <Link to={newPost ? `/blog/${newPost.Slug__c}` : '/blog'}
+              <Link to={newPost ? `/blog/${newPost.Slug__c}` : '/blog'} data-buddy="blog"
                 className={newPost ? 'blog-btn-new' : undefined}
                 title={newPost ? `New post: ${newPost.Title__c}` : undefined}
                 style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500, color: newPost ? 'var(--fg)' : 'var(--fg-2)', border: `1px solid ${newPost ? 'rgba(139,92,246,0.6)' : 'var(--border-2)'}`, textDecoration: 'none', transition: 'color .15s, background .15s' }}
@@ -264,7 +200,7 @@ export default function Hero() {
                   </motion.span>
                 )}
               </Link>
-              <a href="/resume.pdf" download
+              <a href="/resume.pdf" download data-buddy="resume"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500, color: 'var(--fg-2)', border: '1px solid var(--border-2)', textDecoration: 'none', transition: 'color .15s, background .15s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fg)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-2)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--fg-2)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -275,7 +211,7 @@ export default function Hero() {
             </motion.div>
 
             {/* Socials */}
-            <motion.div {...fade(0.5)} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <motion.div {...fade(0.5)} data-buddy="social" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <span style={{ fontSize: 12, color: 'var(--fg-3)' }}>Find me on</span>
               {[
                 { label: 'LinkedIn', href: 'https://www.linkedin.com/in/batham/', icon: <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> },
@@ -334,20 +270,41 @@ export default function Hero() {
         @media (prefers-reduced-motion: reduce) {
           .project-nudge::after, .nudge-arrow, .blog-btn-new, .blog-new-badge::after { animation: none; }
         }
+        .hero-grid { display: flex; justify-content: center; }
+        .hero-stage { position: relative; width: 100%; min-width: 0; max-width: 820px; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 0 40px; }
+        .hero-badges, .hero-ctas, .build-rotator { justify-content: center; }
+        .hero-name { background: linear-gradient(180deg, var(--fg) 30%, color-mix(in srgb, var(--fg) 55%, var(--accent))); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
         @media (max-width: 640px) {
-          .hero-badges { justify-content: center; }
-          .build-rotator { flex-direction: column; justify-content: center; }
-          .hero-grid {
-            grid-template-columns: 1fr !important;
-            justify-items: center;
-            text-align: center;
-            gap: 36px !important;
-          }
-          .hero-grid > div:last-child {
-            display: flex; flex-direction: column; align-items: center;
-          }
+          .build-rotator { flex-direction: column; }
+          /* Trail stands on top of the name here, so give it headroom below the badges */
+          .hero-badges { margin-bottom: 120px !important; }
         }
       `}</style>
     </section>
+  )
+}
+
+/* Night sky behind the hero: gradient sky, nebula glow, live starfield and mountain silhouettes.
+   In light mode the same scene turns into a soft dawn with faint violet stars. */
+function HeroBackdrop() {
+  const { theme } = useTheme()
+  const dark = theme === 'dark'
+  return (
+    <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', inset: 0, background: dark
+        ? 'linear-gradient(180deg, #03040c 0%, #070b1f 38%, #0f0d29 72%, var(--bg) 100%)'
+        : 'linear-gradient(180deg, #e9ecff 0%, #f3f0ff 45%, var(--bg) 100%)' }} />
+      {/* Nebula glow */}
+      <div style={{ position: 'absolute', top: '-10%', left: '8%', width: 620, height: 620, borderRadius: '50%', background: `radial-gradient(circle, ${dark ? 'rgba(99,102,241,0.16)' : 'rgba(139,92,246,0.10)'}, transparent 65%)` }} />
+      <div style={{ position: 'absolute', top: '18%', right: '-6%', width: 560, height: 560, borderRadius: '50%', background: `radial-gradient(circle, ${dark ? 'rgba(14,165,233,0.11)' : 'rgba(14,165,233,0.07)'}, transparent 65%)` }} />
+      <NightSky dark={dark} />
+      <svg viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: 200 }}>
+        <path d="M0 240 L0 170 L140 90 L250 150 L400 40 L560 160 L700 80 L860 170 L1010 60 L1170 150 L1300 100 L1440 160 L1440 240 Z" fill={dark ? '#0b0d1f' : 'color-mix(in srgb, var(--accent) 10%, transparent)'} />
+        <path d="M0 240 L0 200 L180 140 L330 190 L520 110 L690 190 L880 130 L1060 200 L1250 140 L1440 190 L1440 240 Z" fill={dark ? '#07080f' : 'color-mix(in srgb, #0ea5e9 9%, transparent)'} />
+        <path d="M60 236 C 260 200, 420 230, 620 205 S 980 170, 1180 200 S 1380 215, 1440 205" fill="none" stroke="var(--accent)" strokeOpacity="0.45" strokeWidth="2" strokeDasharray="6 10" />
+      </svg>
+      {/* Blend the mountains into the next section */}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 60, background: 'linear-gradient(transparent, var(--bg))' }} />
+    </div>
   )
 }
