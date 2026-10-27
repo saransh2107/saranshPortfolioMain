@@ -1,14 +1,6 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-
-const certs = [
-  { name: 'Salesforce Certified Administrator',           short: 'Admin',             color: '#0ea5e9', icon: '🛡️', desc: 'Core platform administration, security, and automation.' },
-  { name: 'Salesforce Certified Marketing Associate',     short: 'Marketing',         color: '#f97316', icon: '📣', desc: 'Marketing Cloud foundations, journeys, and email campaigns.' },
-  { name: 'Data Cloud Consultant',                        short: 'Data Cloud',        color: '#8b5cf6', icon: '☁️', desc: 'Unified data profiles, segmentation, and real-time activation.' },
-  { name: 'AI Associate',                                 short: 'AI',                color: '#22c55e', icon: '🤖', desc: 'AI fundamentals, ethical AI, and Einstein platform capabilities.' },
-  { name: 'Platform Developer I',                         short: 'PD1',               color: '#6366f1', icon: '⚡', desc: 'Apex, Visualforce, SOQL, and core Salesforce development patterns.' },
-  { name: 'Agentforce Specialist',                        short: 'Agentforce',        color: '#f59e0b', icon: '🤝', desc: 'Building and configuring autonomous Agentforce AI agents.' },
-]
+import { certs } from '../data/resume'
 
 export default function Certifications() {
   const ref = useRef(null)
@@ -18,7 +10,7 @@ export default function Certifications() {
   return (
     <section id="certifications" className="section" ref={ref}>
       <div className="container">
-        <motion.p {...v(0)} className="section-label">02 — Certifications</motion.p>
+        <motion.p {...v(0)} className="section-label">03 — Certifications</motion.p>
         <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 8 }}>
           6 Salesforce Certifications
         </motion.h2>

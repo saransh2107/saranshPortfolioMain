@@ -1,17 +1,11 @@
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { impactAnalyzer, tradeNotes } from '../data/resume'
+import Rich from './Rich'
 
-const STORE_URL = 'https://chromewebstore.google.com/detail/ijamiihglnmoohemmnilcjnhhkhfihoh'
+const { storeUrl: STORE_URL, features, highlights } = impactAnalyzer
+
 const BLUE = '#3b82f6'
-
-const features = [
-  { icon: '🔎', title: 'Deep reference search', desc: 'Apex, Flows, LWC, Aura, Visualforce, formulas, layouts, reports, validation rules & more.' },
-  { icon: '🚦', title: 'Change risk rating',    desc: 'High / Medium / Low risk with a clear reason, including indirect impact.' },
-  { icon: '🕸️', title: 'Dependency graph',      desc: 'Interactive graph of everything that touches a field, object or class.' },
-  { icon: '🧪', title: 'Deploy-ready output',   desc: 'Test classes to run, an SF CLI deploy command, Jira/PR summary & CSV export.' },
-]
-
-const highlights = ['Read-only', 'Runs in your browser', 'No external servers', 'Demo org included']
 
 const mockRefs = [
   { type: 'Apex',     name: 'AccountTriggerHandler.cls', match: 'confirmed', color: '#6366f1' },
@@ -40,7 +34,7 @@ function ChromeIcon() {
   )
 }
 
-function MockWindow() {
+export function MockWindow() {
   return (
     <div style={{ background: 'var(--bg)', border: '1px solid var(--border-2)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,0.25)' }}>
       {/* Window chrome */}
@@ -107,12 +101,12 @@ export default function Projects() {
   return (
     <section id="projects" className="section" ref={ref}>
       <div className="container">
-        <motion.p {...v(0)} className="section-label">03 — Projects</motion.p>
+        <motion.p {...v(0)} className="section-label">04 — Projects</motion.p>
         <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 8 }}>
           Things I've built
         </motion.h2>
         <motion.p {...v(0.08)} style={{ fontSize: 14, color: 'var(--fg-3)', marginBottom: 40 }}>
-          Tools for the Salesforce community — free to try.
+          Tools for Salesforce developers and traders — free to try.
         </motion.p>
 
         <motion.div {...v(0.12)}
@@ -187,11 +181,103 @@ export default function Projects() {
             </motion.div>
           </div>
         </motion.div>
+
+        <TradeNotesCard inView={inView} />
       </div>
       <style>{`
-        @media (max-width: 820px) { .project-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width: 820px) { .project-grid { grid-template-columns: 1fr !important; } .tn-grid { grid-template-columns: 1fr !important; } }
         @media (max-width: 480px) { .feature-grid { grid-template-columns: 1fr !important; } #projects .project-grid { gap: 28px !important; } }
       `}</style>
     </section>
+  )
+}
+
+const TEAL = '#14b8a6'
+
+function TradeNotesCard({ inView }: { inView: boolean }) {
+  const [shot, setShot] = useState(0)
+  const p = tradeNotes
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.2 }}
+      style={{ position: 'relative', overflow: 'hidden', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 20, padding: 32, marginTop: 16 }}
+    >
+      <div aria-hidden style={{ position: 'absolute', bottom: -140, left: -120, width: 340, height: 340, borderRadius: '50%', background: `radial-gradient(circle, ${TEAL}2e, transparent 70%)`, pointerEvents: 'none' }} />
+
+      <div className="tn-grid" style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 40, alignItems: 'start' }}>
+        {/* Screenshots */}
+        <div style={{ order: -1, minWidth: 0 }}>
+          <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--border-2)', boxShadow: '0 24px 60px rgba(0,0,0,0.25)', background: '#0f1218', aspectRatio: '1348 / 758' }}>
+            <img key={shot} src={p.screenshots[shot].src} alt={`TradeNotes — ${p.screenshots[shot].label}`} width={1348} height={758} loading="lazy"
+              style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', animation: 'tn-fade .35s ease' }} />
+          </div>
+          <div role="tablist" aria-label="TradeNotes screenshots" style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
+            {p.screenshots.map((s, i) => (
+              <button key={s.src} role="tab" aria-selected={shot === i} onClick={() => setShot(i)}
+                style={{ fontSize: 11, fontWeight: 600, borderRadius: 99, padding: '4px 12px', cursor: 'pointer', transition: 'all .15s',
+                  color: shot === i ? '#fff' : 'var(--fg-2)', background: shot === i ? TEAL : 'transparent', border: `1px solid ${shot === i ? TEAL : 'var(--border-2)'}` }}
+              >{s.label}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Info */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+            <img src={p.icon} alt="TradeNotes icon" width={52} height={52} style={{ borderRadius: 12, boxShadow: `0 8px 24px ${TEAL}40` }} />
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--fg)', letterSpacing: '-0.015em' }}>{p.name}</h3>
+                <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#22c55e', background: 'rgba(34,197,94,0.12)', borderRadius: 6, padding: '2px 7px', letterSpacing: '.04em', textTransform: 'uppercase' }}>Live</span>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)' }}>Installable web app · PWA</div>
+            </div>
+          </div>
+
+          <p style={{ fontSize: 15, color: 'var(--fg-2)', lineHeight: 1.7, marginBottom: 22 }}>
+            <Rich text={p.pitch} strong={{ color: 'var(--fg)', fontWeight: 600 }} />
+          </p>
+
+          <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
+            {p.features.map(f => (
+              <div key={f.title} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', marginBottom: 4 }}>
+                  <span style={{ marginRight: 6 }}>{f.icon}</span>{f.title}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--fg-3)', lineHeight: 1.5 }}>{f.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 26 }}>
+            {p.highlights.map(h => (
+              <span key={h} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--fg-2)', border: '1px solid var(--border)', borderRadius: 99, padding: '3px 10px' }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={TEAL} strokeWidth={3}><path d="M20 6L9 17l-5-5"/></svg>
+                {h}
+              </span>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+            <a href={p.url} target="_blank" rel="noopener noreferrer" className="tn-cta"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: '#fff', background: `linear-gradient(135deg, ${TEAL}, #0d9488)`, borderRadius: 10, padding: '11px 20px', textDecoration: 'none', boxShadow: `0 8px 24px ${TEAL}40` }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+              Install free
+            </a>
+            <a href={`${p.url}app.html`} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-2)', border: '1px solid var(--border-2)', borderRadius: 10, padding: '10px 16px', textDecoration: 'none' }}
+            >Try in browser →</a>
+          </div>
+        </div>
+      </div>
+      <style>{`
+        @keyframes tn-fade { from { opacity: 0; } }
+        .tn-cta { transition: transform .15s, box-shadow .15s; }
+        .tn-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px ${TEAL}66 !important; }
+        @media (max-width: 480px) { .tn-grid { gap: 28px !important; } }
+      `}</style>
+    </motion.div>
   )
 }

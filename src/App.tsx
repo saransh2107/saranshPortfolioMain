@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Analytics } from '@vercel/analytics/react'
 import { ThemeProvider } from './context/ThemeContext'
+import { ViewProvider, useView } from './context/ViewContext'
 import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -11,6 +12,28 @@ import Home from './pages/Home'
 
 const BlogList   = lazy(() => import('./pages/BlogList'))
 const BlogDetail = lazy(() => import('./pages/BlogDetail'))
+const SalesforceApp = lazy(() => import('./salesforce/SalesforceApp'))
+
+// Standard portfolio, or the whole site rendered as a Lightning-style app
+function Site() {
+  const { view } = useView()
+  if (view === 'salesforce') return <Suspense fallback={null}><SalesforceApp /></Suspense>
+  return (
+    <>
+      <Navbar />
+      <main>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/blog" element={<BlogList />} />
+            <Route path="/blog/:slug" element={<BlogDetail />} />
+          </Routes>
+        </Suspense>
+      </main>
+      <Footer />
+    </>
+  )
+}
 
 export default function App() {
   // The intro only plays when a visitor lands on the home page, not on a blog link or after in-app navigation
@@ -45,20 +68,11 @@ export default function App() {
 
   return (
     <ThemeProvider>
+    <ViewProvider>
       <div className="grain">
         {!loaded && <Preloader onComplete={() => setLoaded(true)} />}
         <BrowserRouter>
-          <Navbar />
-          <main>
-            <Suspense fallback={null}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/blog" element={<BlogList />} />
-                <Route path="/blog/:slug" element={<BlogDetail />} />
-              </Routes>
-            </Suspense>
-          </main>
-          <Footer />
+          <Site />
         </BrowserRouter>
         <Analytics />
 
@@ -197,6 +211,7 @@ export default function App() {
           }
         `}</style>
       </div>
+    </ViewProvider>
     </ThemeProvider>
   )
 }
