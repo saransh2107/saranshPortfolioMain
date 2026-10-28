@@ -25,6 +25,14 @@ export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   // From another page, route back home in-app (no full reload) and let Home scroll to the section
+  // Already home: a link to "/" wouldn't move, so scroll back to the top (and drop any #section)
+  const goHome = (e: React.MouseEvent) => {
+    setMenuOpen(false)
+    if (location.pathname !== '/') return
+    e.preventDefault()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (location.hash) navigate('/', { replace: true })
+  }
   const goToSection = (e: React.MouseEvent, href: string) => {
     if (location.pathname !== '/') { e.preventDefault(); navigate(href) }
   }
@@ -53,7 +61,7 @@ export default function Navbar() {
     >
       <div className="container" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }} onClick={goHome}>
           <div style={{
             width: 30, height: 30, borderRadius: 8,
             background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',

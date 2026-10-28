@@ -5,6 +5,21 @@
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Nohemi', 'Inter', system-ui, sans-serif;
+}
+
+/* ── Display font ──────────────────────────────── */
+/* Nohemi (licensed from the designer on Gumroad) — drop the files into public/fonts/.
+   Until they're there, headings fall back to Inter. */
+@font-face {
+  font-family: 'Nohemi';
+  src: url('/fonts/Nohemi-SemiBold.woff2') format('woff2'), url('/fonts/Nohemi-SemiBold.otf') format('opentype');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nohemi';
+  src: url('/fonts/Nohemi-Bold.woff2') format('woff2'), url('/fonts/Nohemi-Bold.otf') format('opentype');
+  font-weight: 700; font-style: normal; font-display: swap;
 }
 
 /* ── Design tokens ─────────────────────────────── */

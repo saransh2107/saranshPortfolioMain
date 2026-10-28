@@ -29,11 +29,14 @@ function StandardView({ inView }: { inView: boolean }) {
   const strong = { color: 'var(--fg)', fontWeight: 600 }
   return (
     <div className="xp-timeline">
+      {/* The line draws itself down once the section scrolls into view */}
+      <motion.span className="xp-line" aria-hidden initial={{ scaleY: 0 }} animate={inView ? { scaleY: 1 } : {}} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.1 }} />
       {jobs.map((job, i) => (
         <motion.article key={job.company + job.title} className="xp-item"
           initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.12 + i * 0.08 }}
         >
-          <span className="xp-dot" style={{ background: 'var(--accent)', boxShadow: '0 0 0 4px var(--accent-fg)' }} />
+          <motion.span className="xp-dot" style={{ background: 'var(--accent)', boxShadow: '0 0 0 4px var(--accent-fg)' }}
+            initial={{ scale: 0 }} animate={inView ? { scale: 1 } : {}} transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.3 + i * 0.15 }} />
           <div className="xp-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
               <div>
@@ -67,7 +70,8 @@ function StandardView({ inView }: { inView: boolean }) {
       ))}
 
       <motion.article className="xp-item" initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.12 + jobs.length * 0.08 }}>
-        <span className="xp-dot" style={{ background: 'var(--bg-3)', border: '2px solid var(--border-2)' }} />
+        <motion.span className="xp-dot" style={{ background: 'var(--bg-3)', border: '2px solid var(--border-2)' }}
+          initial={{ scale: 0 }} animate={inView ? { scale: 1 } : {}} transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.3 + jobs.length * 0.15 }} />
         <div className="xp-card" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div>
             <p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>Education</p>
@@ -83,14 +87,14 @@ function StandardView({ inView }: { inView: boolean }) {
 
       <style>{`
         .xp-timeline { position: relative; display: flex; flex-direction: column; gap: 16px; padding-left: 28px; }
-        .xp-timeline::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(var(--accent), var(--border-2) 60%, transparent); }
+        .xp-line { transform-origin: top; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(var(--accent), var(--border-2) 60%, transparent); }
         .xp-item { position: relative; }
         .xp-dot { position: absolute; left: -28px; top: 26px; width: 13px; height: 13px; border-radius: 50%; }
         .xp-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; transition: border-color .2s; }
         .xp-card:hover { border-color: var(--border-2); }
         .xp-live { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; animation: xp-blink 2s ease-in-out infinite; }
         @keyframes xp-blink { 50% { opacity: .35; } }
-        @media (max-width: 480px) { .xp-timeline { padding-left: 20px; } .xp-dot { left: -20px; } .xp-timeline::before { left: 2px; } .xp-card { padding: 18px; } }
+        @media (max-width: 480px) { .xp-timeline { padding-left: 20px; } .xp-dot { left: -20px; } .xp-line { left: 2px; } .xp-card { padding: 18px; } }
       `}</style>
     </div>
   )
