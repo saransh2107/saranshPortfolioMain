@@ -9,18 +9,9 @@
 }
 
 /* ── Display font ──────────────────────────────── */
-/* Nohemi (licensed from the designer on Gumroad) — drop the files into public/fonts/.
-   Until they're there, headings fall back to Inter. */
-@font-face {
-  font-family: 'Nohemi';
-  src: url('/fonts/Nohemi-SemiBold.woff2') format('woff2'), url('/fonts/Nohemi-SemiBold.otf') format('opentype');
-  font-weight: 600; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Nohemi';
-  src: url('/fonts/Nohemi-Bold.woff2') format('woff2'), url('/fonts/Nohemi-Bold.otf') format('opentype');
-  font-weight: 700; font-style: normal; font-display: swap;
-}
+/* Nohemi (licensed from the designer on Gumroad): headings fall back to Inter until it's added.
+   To use it, put Nohemi-SemiBold.woff2 / Nohemi-Bold.woff2 in public/fonts/ and add @font-face rules
+   here. They were removed because the files are missing and every page load made 4 requests that 404'd. */
 
 /* ── Design tokens ─────────────────────────────── */
 :root {

@@ -8,6 +8,11 @@ import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import FloatingTerminal from './components/FloatingTerminal'
+import CursorGlow from './components/CursorGlow'
+
+// The intro plays once per browser session
+const introSeen = () => { try { return sessionStorage.getItem('intro-seen') === '1' } catch { return false } }
+const markIntroSeen = () => { try { sessionStorage.setItem('intro-seen', '1') } catch { /* private mode */ } }
 import Home from './pages/Home'
 
 const BlogList   = lazy(() => import('./pages/BlogList'))
@@ -36,8 +41,8 @@ function Site() {
 }
 
 export default function App() {
-  // The intro only plays when a visitor lands on the home page, not on a blog link or after in-app navigation
-  const [loaded, setLoaded] = useState(() => window.location.pathname !== '/')
+  // The intro only plays when a visitor first lands on the home page, not on a blog link, a reload or in-app navigation
+  const [loaded, setLoaded] = useState(() => window.location.pathname !== '/' || introSeen())
   const [terminalOpen, setTerminalOpen] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [hintDismissed, setHintDismissed] = useState(false)
@@ -70,7 +75,8 @@ export default function App() {
     <ThemeProvider>
     <ViewProvider>
       <div className="grain">
-        {!loaded && <Preloader onComplete={() => setLoaded(true)} />}
+        {!loaded && <Preloader onComplete={() => { markIntroSeen(); setLoaded(true) }} />}
+        <CursorGlow />
         <BrowserRouter>
           <Site />
         </BrowserRouter>

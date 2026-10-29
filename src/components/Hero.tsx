@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, useMotionValue, useSpring, type Variants } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useExperience, experienceLabel } from '../hooks/useExperience'
 import { useBlogPosts } from '../hooks/useBlogPosts'
@@ -17,6 +17,37 @@ const BUILDS = [
 ]
 
 const NEW_POST_DAYS = 4
+
+// Three star layers as box-shadow lists (drawn once, then only moved), nearest layer biggest and brightest
+function seeded(seed: number) {
+  return () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+}
+const STAR_LAYERS = [{ n: 70, size: 1, seed: 7 }, { n: 40, size: 1.5, seed: 31 }, { n: 18, size: 2.2, seed: 97 }].map(({ n, size, seed }) => {
+  const rnd = seeded(seed)
+  return { size, shadow: Array.from({ length: n }, () => `${(rnd() * 100).toFixed(2)}vw ${(rnd() * 100).toFixed(2)}vh rgba(255,255,255,${(0.35 + rnd() * 0.65).toFixed(2)})`).join(',') }
+})
+const STAR_DEPTH = [6, 14, 28] // px each layer travels with the cursor
+
+/** Moves the hero's background layers against the cursor for depth; the loop only runs while easing. */
+function useParallax(layers: React.RefObject<(HTMLElement | null)[]>, depths: number[]) {
+  useEffect(() => {
+    if (!window.matchMedia('(pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let tx = 0, ty = 0, x = 0, y = 0, raf = 0
+    const step = () => {
+      x += (tx - x) * 0.08; y += (ty - y) * 0.08
+      layers.current?.forEach((el, i) => { if (el) el.style.transform = `translate3d(${(-x * depths[i]).toFixed(2)}px, ${(-y * depths[i]).toFixed(2)}px, 0)` })
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.001 ? requestAnimationFrame(step) : 0
+    }
+    const onMove = (e: PointerEvent) => {
+      tx = e.clientX / window.innerWidth * 2 - 1
+      ty = e.clientY / window.innerHeight * 2 - 1
+      if (!raf && window.scrollY < window.innerHeight) raf = requestAnimationFrame(step)
+    }
+    window.addEventListener('pointermove', onMove, { passive: true })
+    return () => { window.removeEventListener('pointermove', onMove); cancelAnimationFrame(raf) }
+  }, [layers, depths])
+}
+const PARALLAX_DEPTHS = [...STAR_DEPTH, 22, 12, -10] // stars ×3, aurora, sun/moon, planet
 
 // Text column enters as a gentle stagger
 const column: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } } }
@@ -78,25 +109,34 @@ const SOCIALS = [
 ]
 
 export default function Hero() {
-  const exp = useExperience()
+  const exp = useExperience(false)
   const { posts } = useBlogPosts(1)
   const [now] = useState(Date.now)
   const latest = posts[0]
   const ageDays = latest?.Published_Date__c ? (now - Date.parse(latest.Published_Date__c)) / 86_400_000 : Infinity
   const newPost = ageDays >= -1 && ageDays <= NEW_POST_DAYS ? latest : null
 
-  // Soft spotlight on the background grid follows the pointer
-  const onPointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    const r = e.currentTarget.getBoundingClientRect()
-    e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`)
-    e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`)
-  }
+  const depthRefs = useRef<(HTMLElement | null)[]>([])
+  useParallax(depthRefs, PARALLAX_DEPTHS)
+  const depth = (i: number) => (el: HTMLElement | null) => { depthRefs.current[i] = el }
 
   return (
-    <section className="hero" onPointerMove={onPointerMove}>
-      {/* Aurora: slow-drifting blurred glows, plus a soft light that follows the pointer */}
-      <div className="hero-aurora" aria-hidden><i /><i /><i /></div>
-      <div className="hero-spot" aria-hidden />
+    <section className="hero">
+      {/* Aurora: slow-drifting soft glows */}
+      <div ref={depth(3)} className="hero-depth" aria-hidden><div className="hero-aurora"><i /><i /><i /></div></div>
+
+      {/* Stars at night; each layer drifts against the cursor at its own depth */}
+      {STAR_LAYERS.map((l, i) => (
+        <div key={i} ref={depth(i)} className="hero-depth hero-stars" aria-hidden>
+          <i style={{ width: l.size, height: l.size, boxShadow: l.shadow, animationDelay: `${-i * 1.7}s` }} />
+        </div>
+      ))}
+
+      {/* The sun drops in at the top when switching to light mode; the moon rises back for dark mode */}
+      <div ref={depth(4)} className="hero-sky" aria-hidden>
+        <div className="hero-sun"><span className="hero-sun-rays" /><span className="hero-sun-core" /></div>
+        <div className="hero-moon" />
+      </div>
 
       <div className="container" style={{ position: 'relative' }}>
         <div className="hero-grid">
@@ -129,7 +169,7 @@ export default function Hero() {
               Salesforce Developer · <span>{experienceLabel(exp)}+ years</span> · 6× certified
             </motion.p>
 
-            <motion.div variants={item}>
+            <motion.div variants={item} className="hero-build-wrap">
               <BuildRotator />
             </motion.div>
 
@@ -174,23 +214,42 @@ export default function Hero() {
             initial={{ opacity: 0, scale: 0.94, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
           >
-            <PlanetScene />
+            <div ref={depth(5)}><PlanetScene /></div>
           </motion.div>
         </div>
       </div>
 
       <style>{`
         .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 88px 0 56px; overflow: hidden; }
-        .hero-aurora { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-        .hero-aurora i { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .32; animation: hero-drift 26s ease-in-out infinite alternate; }
-        .hero-aurora i:nth-child(1) { width: 46vw; height: 46vw; max-width: 640px; max-height: 640px; left: 52%; top: -12%; background: #6d28d9; }
-        .hero-aurora i:nth-child(2) { width: 38vw; height: 38vw; max-width: 520px; max-height: 520px; left: 66%; top: 38%; background: #0ea5e9; animation-duration: 32s; animation-delay: -8s; }
-        .hero-aurora i:nth-child(3) { width: 34vw; height: 34vw; max-width: 460px; max-height: 460px; left: -8%; top: 52%; background: #4f46e5; opacity: .18; animation-duration: 38s; animation-delay: -16s; }
-        :root:not(.dark) .hero-aurora i { opacity: .16; }
-        :root:not(.dark) .hero-aurora i:nth-child(3) { opacity: .1; }
+        .hero-depth { position: absolute; inset: -40px; pointer-events: none; will-change: transform; }
+        .hero-aurora { position: absolute; inset: 0; overflow: hidden; }
+        /* Soft glows are radial gradients rather than filter: blur(), which is far cheaper to animate */
+        .hero-aurora i { position: absolute; border-radius: 50%; opacity: .5; background: radial-gradient(circle, var(--c) 0%, transparent 68%); animation: hero-drift 26s ease-in-out infinite alternate; will-change: transform; }
+        .hero-aurora i:nth-child(1) { --c: #6d28d9; width: 60vw; height: 60vw; max-width: 860px; max-height: 860px; left: 46%; top: -22%; }
+        .hero-aurora i:nth-child(2) { --c: #0ea5e9; width: 50vw; height: 50vw; max-width: 700px; max-height: 700px; left: 60%; top: 30%; animation-duration: 32s; animation-delay: -8s; }
+        .hero-aurora i:nth-child(3) { --c: #4f46e5; width: 46vw; height: 46vw; max-width: 640px; max-height: 640px; left: -14%; top: 44%; opacity: .28; animation-duration: 38s; animation-delay: -16s; }
+        :root:not(.dark) .hero-aurora i { opacity: .2; }
+        :root:not(.dark) .hero-aurora i:nth-child(3) { opacity: .12; }
         @keyframes hero-drift { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-6%, 8%) scale(1.12); } 100% { transform: translate(5%, -4%) scale(.94); } }
-        .hero-spot { position: absolute; inset: 0; pointer-events: none;
-          background: radial-gradient(380px circle at var(--mx, 70%) var(--my, 40%), color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%); }
+
+        .hero-stars { transition: opacity .8s ease; }
+        .hero-stars i { position: absolute; left: 40px; top: 40px; border-radius: 50%; animation: hero-twinkle 5s ease-in-out infinite alternate; }
+        :root:not(.dark) .hero-stars { opacity: 0; }
+        @keyframes hero-twinkle { from { opacity: 1; } to { opacity: .35; } }
+
+        /* Sky: the sun hangs above the scene in light mode, the moon in dark mode */
+        .hero-sky { position: absolute; top: 76px; left: 54%; width: 96px; height: 96px; pointer-events: none; will-change: transform; }
+        .hero-sun, .hero-moon { position: absolute; inset: 0; transition: transform 1.3s cubic-bezier(.22,1.2,.36,1), opacity .9s ease; }
+        .hero-sun { transform: translateY(0) scale(1); opacity: 1; }
+        :root.dark .hero-sun { transform: translateY(-240px) scale(.5); opacity: 0; transition-duration: .8s; }
+        .hero-sun-core { position: absolute; inset: 22%; border-radius: 50%; background: radial-gradient(circle at 40% 38%, #fffbe6 0%, #ffe066 35%, #ffb020 75%, #ff8a1f 100%);
+          box-shadow: 0 0 30px 8px rgba(255,190,60,.55), 0 0 90px 30px rgba(255,170,40,.25); }
+        .hero-sun-rays { position: absolute; inset: -30%; border-radius: 50%; opacity: .55; animation: hero-rays 40s linear infinite;
+          background: repeating-conic-gradient(from 0deg, rgba(255,196,70,.55) 0deg 5deg, transparent 5deg 22.5deg);
+          -webkit-mask: radial-gradient(circle, transparent 30%, #000 34%, transparent 70%); mask: radial-gradient(circle, transparent 30%, #000 34%, transparent 70%); }
+        .hero-moon { inset: 30%; border-radius: 50%; transform: translateY(-200px) scale(.6); opacity: 0; box-shadow: inset -11px 7px 0 0 #e9e6ff; filter: drop-shadow(0 0 14px rgba(200,190,255,.45)); }
+        :root.dark .hero-moon { transform: translateY(0) scale(1); opacity: .9; transition-delay: .25s; }
+        @keyframes hero-rays { to { rotate: 360deg; } }
         .hero-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 48px; align-items: center; }
         .hero-copy { min-width: 0; }
 
@@ -241,15 +300,18 @@ export default function Hero() {
           .hero-copy { display: flex; flex-direction: column; align-items: center; text-align: center; }
           .hero-badges, .hero-ctas, .hero-build { justify-content: center; }
           .hero-bio { margin-left: auto; margin-right: auto; }
+          .hero-sky { left: auto; right: 6%; top: 64px; width: 64px; height: 64px; }
         }
         @media (max-width: 480px) {
           .nudge-long { display: none; }
           .nudge-short { display: inline; }
           .hero-pill { max-width: 100%; }
-          .hero-build { flex-direction: column; align-items: center; }
+          /* On phones the "I build …" line shrinks with the screen so the longest phrase still fits on one line */
+          .hero-build { flex-wrap: nowrap; justify-content: center; gap: 0 .4em; font-size: min(20px, 4.6vw); white-space: nowrap; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .project-nudge::after, .nudge-arrow, .blog-btn-new, .blog-new-badge::after, .hero-aurora i { animation: none; }
+          .project-nudge::after, .nudge-arrow, .blog-btn-new, .blog-new-badge::after, .hero-aurora i, .hero-stars i, .hero-sun-rays { animation: none; }
+          .hero-sun, .hero-moon { transition: opacity .3s; }
         }
       `}</style>
     </section>
