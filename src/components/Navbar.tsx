@@ -40,7 +40,7 @@ export default function Navbar() {
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
     const onResize = () => setIsMobile(window.innerWidth < 768)
-    window.addEventListener('scroll', onScroll)
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
     return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onResize) }
   }, [])

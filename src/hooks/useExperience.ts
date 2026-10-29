@@ -49,12 +49,14 @@ export function calcExperience(now: Date = new Date(), start: Date = CAREER_STAR
   }
 }
 
-export function useExperience(): Experience {
+/** Pass live = false for static copy, so the component isn't re-rendered every second. */
+export function useExperience(live = true): Experience {
   const [exp, setExp] = useState(() => calcExperience())
   useEffect(() => {
+    if (!live) return
     const t = setInterval(() => setExp(calcExperience()), 1000)
     return () => clearInterval(t)
-  }, [])
+  }, [live])
   return exp
 }
 
