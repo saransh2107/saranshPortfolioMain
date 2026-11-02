@@ -38,11 +38,16 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10)
+    // Read the position at most once a frame; reading it inside the scroll event forces extra layout
+    let frame = 0
+    const onScroll = () => {
+      if (frame) return
+      frame = requestAnimationFrame(() => { frame = 0; setScrolled(window.scrollY > 10) })
+    }
     const onResize = () => setIsMobile(window.innerWidth < 768)
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onResize) }
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onResize) }
   }, [])
 
   return (
@@ -53,10 +58,9 @@ export default function Navbar() {
       style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
         height: 56,
-        background: scrolled ? (theme === 'dark' ? 'rgba(12,12,15,0.88)' : 'rgba(255,255,255,0.88)') : 'transparent',
-        backdropFilter: scrolled ? 'blur(16px)' : 'none',
+        background: scrolled ? (theme === 'dark' ? 'rgba(12,12,15,0.97)' : 'rgba(255,255,255,0.97)') : 'transparent',
         borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
-        transition: 'background .25s, border-color .25s, backdrop-filter .25s',
+        transition: 'background .25s, border-color .25s',
       }}
     >
       <div className="container" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -150,7 +154,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div style={{ background: theme === 'dark' ? 'rgba(12,12,15,0.97)' : 'rgba(255,255,255,0.97)', backdropFilter: 'blur(16px)', borderTop: '1px solid var(--border)', padding: '12px 24px 20px' }}>
+        <div style={{ background: theme === 'dark' ? 'rgba(12,12,15,0.97)' : 'rgba(255,255,255,0.97)', borderTop: '1px solid var(--border)', padding: '12px 24px 20px' }}>
           {links.map(l => l.href.startsWith('/blog') ? (
             <Link key={l.label} to={l.href} onClick={() => setMenuOpen(false)}
               style={{ display: 'block', padding: '10px 0', fontSize: 15, fontWeight: 500, color: 'var(--fg-2)', textDecoration: 'none', borderBottom: '1px solid var(--border)' }}

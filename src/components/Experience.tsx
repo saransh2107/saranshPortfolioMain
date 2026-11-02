@@ -2,20 +2,16 @@ import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { jobs, education, fmtMonth, tenure } from '../data/resume'
 import Rich from './Rich'
+import SectionHead from './SectionHead'
 
 export default function Experience() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
-  const v = (d = 0) => ({ initial: { opacity: 0, y: 20 }, animate: inView ? { opacity: 1, y: 0 } : {}, transition: { duration: 0.5, delay: d } })
-
+  
   return (
     <section id="experience" className="section" ref={ref}>
       <div className="container">
-        <motion.p {...v(0)} className="section-label">02 — Experience</motion.p>
-
-        <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 40 }}>
-          Where I've worked
-        </motion.h2>
+        <SectionHead label="02 — Experience" title="Where I've *delivered*" />
 
         <StandardView inView={inView} />
       </div>
@@ -52,7 +48,7 @@ function StandardView({ inView }: { inView: boolean }) {
                 <p style={{ fontSize: 11, color: 'var(--fg-3)', marginTop: 4 }}>{tenure(job.start, job.end)}</p>
               </div>
             </div>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <ul className="xp-list" style={{ listStyle: 'none' }}>
               {job.achievements.map(a => (
                 <li key={a} style={{ position: 'relative', paddingLeft: 18, fontSize: 14, color: 'var(--fg-2)', lineHeight: 1.65 }}>
                   <span style={{ position: 'absolute', left: 0, top: 10, width: 6, height: 6, borderRadius: 2, background: 'var(--accent-2)', opacity: .7 }} />
@@ -88,6 +84,8 @@ function StandardView({ inView }: { inView: boolean }) {
       <style>{`
         .xp-timeline { position: relative; display: flex; flex-direction: column; gap: 16px; padding-left: 28px; }
         .xp-line { transform-origin: top; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(var(--accent), var(--border-2) 60%, transparent); }
+        .xp-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 28px; }
+        @media (max-width: 760px) { .xp-list { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
         .xp-item { position: relative; }
         .xp-dot { position: absolute; left: -28px; top: 26px; width: 13px; height: 13px; border-radius: 50%; }
         .xp-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; transition: border-color .2s; }

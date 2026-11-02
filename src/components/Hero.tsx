@@ -120,8 +120,18 @@ export default function Hero() {
   useParallax(depthRefs, PARALLAX_DEPTHS)
   const depth = (i: number) => (el: HTMLElement | null) => { depthRefs.current[i] = el }
 
+  // Once scrolled past, the whole hero stops animating and its large background layers stop being drawn
+  const heroRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = heroRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([e]) => el.classList.toggle('hero-off', !e.isIntersecting))
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
   return (
-    <section className="hero">
+    <section ref={heroRef} className="hero">
       {/* Aurora: slow-drifting soft glows */}
       <div ref={depth(3)} className="hero-depth" aria-hidden><div className="hero-aurora"><i /><i /><i /></div></div>
 
@@ -161,7 +171,7 @@ export default function Hero() {
             </motion.div>
 
             <motion.h1 variants={item} className="hero-name">
-              Saransh Batham
+              Saransh <em>Batham</em>
               <span className="sr-only"> — Salesforce Developer</span>
             </motion.h1>
 
@@ -221,6 +231,8 @@ export default function Hero() {
 
       <style>{`
         .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 88px 0 56px; overflow: hidden; }
+        .hero-off *, .hero-off *::before, .hero-off *::after { animation-play-state: paused !important; }
+        .hero-off .hero-depth, .hero-off .hero-sky { visibility: hidden; }
         .hero-depth { position: absolute; inset: -40px; pointer-events: none; will-change: transform; }
         .hero-aurora { position: absolute; inset: 0; overflow: hidden; }
         /* Soft glows are radial gradients rather than filter: blur(), which is far cheaper to animate */
@@ -242,13 +254,24 @@ export default function Hero() {
         .hero-sun, .hero-moon { position: absolute; inset: 0; transition: transform 1.3s cubic-bezier(.22,1.2,.36,1), opacity .9s ease; }
         .hero-sun { transform: translateY(0) scale(1); opacity: 1; }
         :root.dark .hero-sun { transform: translateY(-240px) scale(.5); opacity: 0; transition-duration: .8s; }
+        :root.dark .hero-sun-rays { animation-play-state: paused; }
         .hero-sun-core { position: absolute; inset: 22%; border-radius: 50%; background: radial-gradient(circle at 40% 38%, #fffbe6 0%, #ffe066 35%, #ffb020 75%, #ff8a1f 100%);
           box-shadow: 0 0 30px 8px rgba(255,190,60,.55), 0 0 90px 30px rgba(255,170,40,.25); }
         .hero-sun-rays { position: absolute; inset: -30%; border-radius: 50%; opacity: .55; animation: hero-rays 40s linear infinite;
           background: repeating-conic-gradient(from 0deg, rgba(255,196,70,.55) 0deg 5deg, transparent 5deg 22.5deg);
           -webkit-mask: radial-gradient(circle, transparent 30%, #000 34%, transparent 70%); mask: radial-gradient(circle, transparent 30%, #000 34%, transparent 70%); }
-        .hero-moon { inset: 30%; border-radius: 50%; transform: translateY(-200px) scale(.6); opacity: 0; box-shadow: inset -11px 7px 0 0 #e9e6ff; filter: drop-shadow(0 0 14px rgba(200,190,255,.45)); }
-        :root.dark .hero-moon { transform: translateY(0) scale(1); opacity: .9; transition-delay: .25s; }
+        /* Full moon: craters over a lit disc, shaded on one edge for roundness */
+        .hero-moon { inset: 22%; border-radius: 50%; transform: translateY(-200px) scale(.6); opacity: 0;
+          background:
+            radial-gradient(circle at 34% 30%, rgba(120,118,150,.5) 0 8%, transparent 9%),
+            radial-gradient(circle at 62% 24%, rgba(120,118,150,.32) 0 5%, transparent 6%),
+            radial-gradient(circle at 70% 56%, rgba(120,118,150,.42) 0 11%, transparent 12%),
+            radial-gradient(circle at 40% 66%, rgba(120,118,150,.36) 0 7%, transparent 8%),
+            radial-gradient(circle at 22% 54%, rgba(120,118,150,.24) 0 4%, transparent 5%),
+            radial-gradient(circle at 56% 82%, rgba(120,118,150,.26) 0 4%, transparent 5%),
+            radial-gradient(circle at 38% 34%, #fbfaff 0%, #e6e3f5 58%, #bdb9d6 100%);
+          box-shadow: 0 0 26px 6px rgba(205,198,255,.32), 0 0 70px 20px rgba(170,160,255,.14), inset -5px -6px 12px rgba(60,55,95,.35); }
+        :root.dark .hero-moon { transform: translateY(0) scale(1); opacity: 1; transition-delay: .25s; }
         @keyframes hero-rays { to { rotate: 360deg; } }
         .hero-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 48px; align-items: center; }
         .hero-copy { min-width: 0; }
@@ -261,8 +284,9 @@ export default function Hero() {
         .hero-pill-new { background: linear-gradient(135deg, rgba(59,130,246,0.14), rgba(29,78,216,0.06)); border: 1px solid rgba(59,130,246,0.42); }
         .hero-pill-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 99px; padding: 2px 8px; }
 
-        .hero-name { font-family: var(--font-display); font-size: clamp(38px, 5.8vw, 68px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.04; margin-bottom: 18px;
+        .hero-name { font-family: var(--font-display); font-size: clamp(46px, 7.4vw, 92px); font-weight: 800; letter-spacing: -0.045em; line-height: .98; margin-bottom: 18px;
           background: linear-gradient(115deg, var(--fg) 45%, var(--accent-2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-name em { font-family: var(--font-accent); font-weight: 400; letter-spacing: -0.02em; -webkit-text-fill-color: var(--accent-2); padding-right: .06em; }
         .hero-role { font-size: 15px; font-weight: 500; color: var(--fg-2); margin-bottom: 22px; }
         .hero-role span { color: var(--accent); font-weight: 600; }
         .hero-build { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; font-family: var(--font-display); font-size: clamp(17px, 2.2vw, 22px); font-weight: 600; letter-spacing: -0.02em; color: var(--fg); margin-bottom: 16px; }
@@ -283,14 +307,14 @@ export default function Hero() {
         .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
         .blog-btn-new { border-color: rgba(139,92,246,0.6); color: var(--fg); animation: blog-glow 2.2s ease-in-out infinite; }
-        @keyframes blog-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); } 50% { box-shadow: 0 0 18px 2px rgba(139,92,246,0.4); } }
+        @keyframes blog-glow { 50% { border-color: rgba(139,92,246,1); } }
         .blog-new-badge { position: absolute; z-index: 1; top: -9px; right: -10px; font-size: 9px; font-weight: 800; letter-spacing: .06em; color: #fff; background: linear-gradient(135deg, #8b5cf6, #ec4899); border-radius: 99px; padding: 2px 7px; box-shadow: 0 2px 10px rgba(236,72,153,0.45); }
         .blog-new-badge::after { content: ''; position: absolute; inset: 0; border-radius: 99px; background: inherit; z-index: -1; animation: blog-ping 1.8s ease-out infinite; }
         @keyframes blog-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(1.8); opacity: 0; } }
         @keyframes nudge-shine { 0%, 60% { transform: translateX(-120%) } 100% { transform: translateX(220%) } }
         @keyframes nudge-arrow { 0%, 100% { transform: translateX(0) } 50% { transform: translateX(3px) } }
         .project-nudge::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent); animation: nudge-shine 3.5s ease-in-out infinite; pointer-events: none; }
-        .nudge-arrow { animation: nudge-arrow 1.2s ease-in-out infinite; flex-shrink: 0; }
+        .nudge-arrow { animation: nudge-arrow 1.2s ease-in-out infinite; flex-shrink: 0; will-change: transform; }
         .nudge-short { display: none; white-space: nowrap; }
 
         @media (max-width: 860px) {

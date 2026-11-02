@@ -6,6 +6,7 @@
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-display: 'Nohemi', 'Inter', system-ui, sans-serif;
+  --font-accent: 'Instrument Serif', Georgia, serif;
 }
 
 /* ── Display font ──────────────────────────────── */
@@ -71,15 +72,25 @@ body {
 /* ── Container ─────────────────────────────────── */
 .container {
   width: 100%;
-  max-width: 960px;
+  max-width: 1140px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
 /* ── Section base ──────────────────────────────── */
 .section {
-  padding: 100px 0;
+  padding: clamp(28px, 3.6vw, 44px) 0;
+  scroll-margin-top: 48px;
 }
+
+/* ── Split: heading on one side, content on the other, so wide screens don't sit half empty ── */
+.split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(28px, 5vw, 64px);
+  align-items: start;
+}
+@media (max-width: 860px) { .split { grid-template-columns: minmax(0, 1fr); } }
 
 /* ── Section label ─────────────────────────────── */
 .section-label {

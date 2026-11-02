@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 const FIRST_WORD = 'Hello'
 const GREETINGS = ['Ciao', 'Hola', 'Salut', 'नमस्ते', '你好', 'Привет', 'Hallo', 'Olá', 'こんにちは', 'مرحبا']
 
-const LETTER_STAGGER = 70    // ms between "Hello" letters
-const HOLD_HELLO     = 650   // ms before the greetings start
-const GREETING_EVERY = 85    // ms per greeting
-const FADE_OUT       = 400   // ms
+const LETTER_STAGGER = 45    // ms between "Hello" letters
+const HOLD_HELLO     = 380   // ms before the greetings start
+const GREETING_EVERY = 55    // ms per greeting
+const FADE_OUT       = 300   // ms
 
 export default function Preloader({ onComplete }: { onComplete: () => void }) {
   const [greeting, setGreeting] = useState<number>(-1)   // -1 = animated "Hello"
@@ -26,7 +26,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
     }
 
     if (reduced) {
-      timers.push(setTimeout(hide, 600))
+      timers.push(setTimeout(hide, 300))
     } else {
       timers.push(setTimeout(() => {
         let i = 0

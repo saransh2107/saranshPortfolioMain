@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useBlogPosts } from '../hooks/useBlogPosts'
 import type { BlogPost } from '../types/blog'
+import SectionHead from './SectionHead'
 
 function PostRow({ post, index }: { post: BlogPost; index: number }) {
   const tags = post.Tags__c ? post.Tags__c.split(',').map(t => t.trim()).slice(0, 2) : []
@@ -63,17 +64,8 @@ export default function BlogPreview() {
   return (
     <section id="blog" className="section" ref={ref}>
       <div className="container">
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40 }}>
-          <div>
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5 }} className="section-label">
-              07 — Latest Writing
-            </motion.p>
-            <motion.h2 initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.05 }}
-              style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)' }}>
-              From the blog
-            </motion.h2>
-          </div>
-          <motion.div initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 0.2 }}>
+        <SectionHead label="07 — Latest Writing" title="From the *blog*" aside={
+          <motion.div initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 0.2 }} style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Link to="/blog"
               style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg-3)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5, transition: 'color .15s' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
@@ -83,7 +75,7 @@ export default function BlogPreview() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </Link>
           </motion.div>
-        </div>
+        } />
 
         {/* First divider */}
         <div style={{ borderTop: '1px solid var(--border)' }} />
@@ -95,10 +87,10 @@ export default function BlogPreview() {
           </div>
         ))}
 
-        {error && <p style={{ padding: '40px 0', color: 'var(--fg-3)', fontSize: 14 }}>Could not load posts.</p>}
+        {error && <p style={{ padding: '20px 0', color: 'var(--fg-3)', fontSize: 14 }}>Could not load posts.</p>}
 
         {!loading && !error && posts.length === 0 && (
-          <p style={{ padding: '40px 0', color: 'var(--fg-3)', fontSize: 14 }}>Blog posts coming soon...</p>
+          <p style={{ padding: '20px 0', color: 'var(--fg-3)', fontSize: 14 }}>Blog posts coming soon...</p>
         )}
 
         {posts.map((post, i) => <PostRow key={post.Id} post={post} index={i} />)}

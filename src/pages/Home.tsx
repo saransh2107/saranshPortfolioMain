@@ -1,4 +1,5 @@
 import Hero from '../components/Hero'
+import BigType from '../components/BigType'
 import About from '../components/About'
 import Experience from '../components/Experience'
 import Certifications from '../components/Certifications'
@@ -31,21 +32,15 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <div className="section-divider" />
+      <BigType words={['Apex', 'Lightning Web Components', 'Data Cloud', 'Agentforce', 'OmniStudio', 'Flow']} />
       <About />
-      <div className="section-divider" />
       <Experience />
-      <div className="section-divider" />
       <Certifications />
-      <div className="section-divider" />
       <Projects />
-      <div className="section-divider" />
       <SkillsBanner />
-      <div className="section-divider" />
       <SalesforceQuiz />
-      <div className="section-divider" />
       <BlogPreview />
-      <div className="section-divider" />
+      <BigType words={["Let's build", 'something', 'on Salesforce']} reverse />
       <Contact />
     </>
   )

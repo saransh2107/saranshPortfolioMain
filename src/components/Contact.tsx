@@ -1,6 +1,8 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { useContactForm } from '../hooks/useContactForm'
+import { links } from '../data/resume'
+import SectionHead from './SectionHead'
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', borderRadius: 10,
@@ -20,14 +22,19 @@ export default function Contact() {
   return (
     <section id="contact" className="section" ref={ref}>
       <div className="container">
-        <div style={{ maxWidth: 560 }}>
-          <motion.p {...v(0)} className="section-label">08 — Contact</motion.p>
-          <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 12 }}>
-            Let's work together
-          </motion.h2>
-          <motion.p {...v(0.1)} style={{ fontSize: 15, color: 'var(--fg-2)', marginBottom: 36, lineHeight: 1.7 }}>
-            Have a Salesforce project in mind or want to collaborate? Send me a message — I'll get back to you.
-          </motion.p>
+        <div className="split">
+          <div>
+            <SectionHead compact label="08 — Contact" title="Let's work *together*" />
+            <motion.p {...v(0.1)} style={{ fontSize: 15.5, color: 'var(--fg-2)', marginBottom: 18, lineHeight: 1.7, maxWidth: 440 }}>
+              Have a Salesforce project in mind or want to collaborate? Send me a message and I'll get back to you.
+            </motion.p>
+            <motion.div {...v(0.15)} style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 13, fontWeight: 600 }}>
+              {[['LinkedIn', links.linkedin], ['GitHub', links.github], ['Trailhead', links.trailhead]].map(([label, href]) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--fg-2)', textUnderlineOffset: 4 }}>{label} ↗</a>
+              ))}
+            </motion.div>
+          </div>
+
 
           {status === 'sent' ? (
             <motion.div initial={{ opacity: 0, scale: .95 }} animate={{ opacity: 1, scale: 1 }}

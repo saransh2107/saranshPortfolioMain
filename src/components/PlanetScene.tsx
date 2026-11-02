@@ -30,6 +30,10 @@ const DESC: Record<string, string> = {
 }
 
 const SPEED = 0.24      // rad/s satellite speed at rest, shared so satellites keep their spacing
+const SAT_LAP_MS = ((Math.PI * 2) / SPEED) * 1000
+const SURFACE_RATES = [1, 1.18, 1.4] // land, clouds, high clouds: higher layers turn a little faster
+// Animations start far along their timeline, so spinning backwards never runs out of room
+const TIMELINE_START = 1e8
 const BASE_SPIN = 1 / 40 // Earth revolutions per second when nobody is touching it
 const MAX_SPIN = 24      // rev/s cap for flicks
 const FRICTION = 0.45    // how quickly a flick decays back to the resting spin (per second)
@@ -53,6 +57,18 @@ const LAND_BG = [0, 50].flatMap(dx => LAND.map(([x, y, w, h, c]) =>
   `radial-gradient(ellipse ${w}% ${h}% at ${x + dx}% ${y}%, ${c} 0 50%, transparent 72%)`)).join(',')
 
 const pad = (n: number) => String(n).padStart(2, '0')
+
+/** One lap of an orbit: position and size, nearest the viewer at the bottom of the ellipse. */
+function orbitKeyframes(orbit: number, width: number): Keyframe[] {
+  const o = ORBITS[orbit], a = (o.tilt * Math.PI) / 180, steps = 48
+  return Array.from({ length: steps + 1 }, (_, k) => {
+    const t = (k / steps) * Math.PI * 2
+    const ex = Math.cos(t) * o.rx * width, ey = Math.sin(t) * o.ry * width
+    const x = ex * Math.cos(a) - ey * Math.sin(a), y = ex * Math.sin(a) + ey * Math.cos(a)
+    const near = (Math.sin(t) + 1) / 2
+    return { transform: `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(0.8 + 0.28 * near).toFixed(3)})` }
+  })
+}
 
 /** SVG ellipse arc for one orbit: the back half (behind the planet) or the front half. */
 function OrbitArc({ o, w, half }: { o: Orbit; w: number; half: 'back' | 'front' }) {
@@ -87,48 +103,74 @@ export default function PlanetScene() {
   const meterRef = useRef<HTMLSpanElement>(null)
   const satRefs = useRef<(HTMLAnchorElement | null)[]>([])
   const paused = useRef(false)
+  const applyRatesRef = useRef<() => void>(() => {})
+  const hold = (on: boolean) => { paused.current = on; applyRatesRef.current() }
   const [w, setW] = useState(400)
   const [hovered, setHovered] = useState<string | null>(null)
 
-  // Everything moves by writing transforms directly in one loop, so React never re-renders at 60fps
+  // At rest everything runs as Web Animations on the compositor, so an idle Earth costs the main thread
+  // nothing. A short frame loop only runs while the spin is changing: during a drag or while a flick coasts.
   useEffect(() => {
     const scene = sceneRef.current, planet = planetRef.current
     if (!scene || !planet) return
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const base = still ? 0 : BASE_SPIN
-    let phase = 0, spin = base, satTime = 0, last = 0, raf = 0, visible = true, meterAt = 0, touched = false
+    let spin = base, last = 0, raf = 0, visible = true, meterAt = 0, touched = false, lastBoost = -1
+    let planetW = planet.clientWidth, surfaceRate = NaN, satRate = NaN
     const drag = { on: false, x: 0, t: 0, v: 0, carry: 0 }
+    const zIndexes: string[] = [], fades: string[] = []
 
-    const layoutSats = () => {
-      const width = scene.clientWidth
-      SATELLITES.forEach((s, i) => {
-        const el = satRefs.current[i]
-        if (!el) return
-        const o = ORBITS[s.orbit]
-        const t = s.offset + satTime
-        const ex = Math.cos(t) * o.rx * width, ey = Math.sin(t) * o.ry * width
-        const a = (o.tilt * Math.PI) / 180
-        const x = ex * Math.cos(a) - ey * Math.sin(a), y = ex * Math.sin(a) + ey * Math.cos(a)
-        const depth = Math.sin(t) // 1 = nearest the viewer
-        el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${0.8 + 0.28 * ((depth + 1) / 2)})`
-        el.style.opacity = String(0.5 + 0.5 * ((depth + 1) / 2))
-        // Behind the planet (z 2) when on the far side; nearer satellites stack above farther ones
-        el.style.zIndex = depth > 0 ? String(10 + Math.round(depth * 10)) : '1'
-      })
-    }
+    // Earth: each surface layer is a strip twice the planet's width, and half a strip is one revolution.
+    // At playback rate 1 that takes a second, so the playback rate is simply the spin in rev/s.
+    const surface = layerRefs.current.flatMap((el, i) => el
+      ? [el.animate([{ transform: 'translate3d(0, 0, 0)' }, { transform: 'translate3d(-50%, 0, 0)' }], { duration: 1000 / SURFACE_RATES[i], iterations: Infinity })]
+      : [])
+    surface.forEach(a => { a.currentTime = TIMELINE_START })
 
-    const paint = (now: number) => {
-      // Each surface layer is a strip twice the planet's width; shifting it by half a strip is one revolution
-      const rates = [1, 1.18, 1.4]
-      layerRefs.current.forEach((el, i) => {
-        if (el) el.style.transform = `translate3d(${-(((phase * rates[i]) % 1 + 1) % 1) * 50}%, 0, 0)`
-      })
-      const boost = Math.min(1, Math.abs(spin - base) / 6)
-      if (glowRef.current) {
-        glowRef.current.style.opacity = String(0.45 + boost * 0.55)
-        glowRef.current.style.transform = `translate(-50%, -50%) scale(${1 + boost * 0.45})`
+    // Satellites: one full lap per animation, with the orbit sampled into keyframes
+    const satAnims = SATELLITES.flatMap((s, i) => {
+      const el = satRefs.current[i]
+      if (!el) return []
+      const a = el.animate(orbitKeyframes(s.orbit, scene.clientWidth), { duration: SAT_LAP_MS, iterations: Infinity })
+      a.currentTime = TIMELINE_START + (s.offset / (Math.PI * 2)) * SAT_LAP_MS
+      return [a]
+    })
+
+    // Depth (stacking and fade) stays out of the animation so the orbit can run on the compositor. It barely needs to update
+    const stack = () => satAnims.forEach((a, i) => {
+      const depth = Math.sin((((a.currentTime as number) / SAT_LAP_MS) % 1) * Math.PI * 2)
+      const z = depth > 0 ? String(10 + Math.round(depth * 10)) : '1'
+      const el = satRefs.current[i] as HTMLElement
+      if (zIndexes[i] !== z) { el.style.zIndex = z; zIndexes[i] = z }
+      const fade = (0.5 + 0.5 * ((depth + 1) / 2)).toFixed(1)
+      if (fades[i] !== fade) { el.style.opacity = fade; fades[i] = fade }
+    })
+
+    const applyRates = () => {
+      const s = drag.on ? 0 : spin
+      if (Math.abs(s - surfaceRate) > 0.03 * Math.max(Math.abs(surfaceRate), 0.02) || Number.isNaN(surfaceRate) || (s === base && surfaceRate !== base)) {
+        surfaceRate = s
+        surface.forEach(a => { a.playbackRate = s })
       }
-      if (streakRef.current) streakRef.current.style.opacity = String(Math.max(0, boost - 0.15) * 0.9)
+      // Satellites get dragged along by the spin, and stop while one is hovered
+      const r = paused.current ? 0 : ((still ? 0 : 1) + Math.abs(spin - base) * 2.2) * (spin < 0 ? -1 : 1)
+      if (Math.abs(r - satRate) > 0.03 * Math.max(Math.abs(satRate), 0.02) || Number.isNaN(satRate) || r === 0) {
+        satRate = r
+        satAnims.forEach(a => { a.playbackRate = r })
+      }
+    }
+    applyRatesRef.current = applyRates
+
+    const effects = (now: number) => {
+      const boost = Math.round(Math.min(1, Math.abs(spin - base) / 6) * 100) / 100
+      if (boost !== lastBoost) {
+        lastBoost = boost
+        if (glowRef.current) {
+          glowRef.current.style.opacity = String(0.45 + boost * 0.55)
+          glowRef.current.style.transform = `translate(-50%, -50%) scale(${1 + boost * 0.45})`
+        }
+        if (streakRef.current) streakRef.current.style.opacity = String(Math.max(0, boost - 0.15) * 0.9)
+      }
       // Speed readout, ~10 updates a second
       if (touched && meterRef.current && now - meterAt > 100) {
         meterAt = now
@@ -136,23 +178,20 @@ export default function PlanetScene() {
         meterRef.current.textContent = s >= MAX_SPIN * 0.98 ? `MAX REV · ${s.toFixed(1)} rev/s`
           : `${s.toFixed(1)} rev/s · ${Math.max(1, Math.round(s / BASE_SPIN))}× speed`
       }
-      scene.style.setProperty('--boost', boost.toFixed(2))
     }
 
-    const tick = (now: number) => {
-      raf = requestAnimationFrame(tick)
+    const run = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000 || 0)
       last = now
-      if (!visible) return
-      if (!drag.on) {
-        spin = base + (spin - base) * Math.exp(-dt * FRICTION)
-        phase += spin * dt
-      }
-      // Satellites get dragged along by the spin
-      if (!paused.current) satTime += dt * (still ? 0 : SPEED) * (1 + Math.abs(spin - base) * 2.2) * (spin < 0 ? -1 : 1)
-      paint(now)
-      layoutSats()
+      if (!drag.on) spin = base + (spin - base) * Math.exp(-dt * FRICTION)
+      const settled = !drag.on && Math.abs(spin - base) < 0.004
+      if (settled) spin = base
+      applyRates()
+      effects(settled ? Infinity : now)
+      stack()
+      raf = settled || !visible ? 0 : requestAnimationFrame(run)
     }
+    const wake = () => { if (!raf) { last = 0; raf = requestAnimationFrame(run) } }
 
     // Grab-and-flick: while held, the surface follows the pointer; on release it keeps the flick's speed
     const onDown = (e: PointerEvent) => {
@@ -161,12 +200,13 @@ export default function PlanetScene() {
       drag.carry = spin
       touched = true
       scene.classList.add('is-spinning')
+      wake()
     }
     const onMove = (e: PointerEvent) => {
       if (!drag.on) return
       const dt = Math.max(1, e.timeStamp - drag.t) / 1000
-      const dPhase = -(e.clientX - drag.x) / planet.clientWidth
-      phase += dPhase
+      const dPhase = -(e.clientX - drag.x) / planetW
+      surface.forEach(a => { a.currentTime = (a.currentTime as number) + dPhase * 1000 })
       drag.v = drag.v * 0.5 + (dPhase / dt) * 0.5
       drag.x = e.clientX; drag.t = e.timeStamp
     }
@@ -182,21 +222,32 @@ export default function PlanetScene() {
       // Shockwave on a hard flick
       const ring = ringRef.current
       if (ring && Math.abs(flick) > 2) { ring.classList.remove('go'); void ring.offsetWidth; ring.classList.add('go') }
+      wake()
     }
     planet.addEventListener('pointerdown', onDown)
     planet.addEventListener('pointermove', onMove)
     planet.addEventListener('pointerup', onUp)
     planet.addEventListener('pointercancel', onUp)
 
-    const ro = new ResizeObserver(() => { setW(scene.clientWidth); layoutSats() })
+    const ro = new ResizeObserver(() => {
+      planetW = planet.clientWidth
+      setW(scene.clientWidth)
+      SATELLITES.forEach((s, i) => (satAnims[i]?.effect as KeyframeEffect | null)?.setKeyframes(orbitKeyframes(s.orbit, scene.clientWidth)))
+    })
     ro.observe(scene)
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting })
+    const all = [...surface, ...satAnims]
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting
+      all.forEach(a => { if (visible) a.play(); else a.pause() })
+      if (visible && spin !== base) wake()
+    })
     io.observe(scene)
-    paint(0)
-    layoutSats()
-    raf = requestAnimationFrame(tick)
+    const stacking = setInterval(() => { if (visible && !raf) stack() }, 140)
+    applyRates()
+    stack()
     return () => {
-      cancelAnimationFrame(raf); ro.disconnect(); io.disconnect()
+      cancelAnimationFrame(raf); clearInterval(stacking); ro.disconnect(); io.disconnect()
+      all.forEach(a => a.cancel())
       planet.removeEventListener('pointerdown', onDown)
       planet.removeEventListener('pointermove', onMove)
       planet.removeEventListener('pointerup', onUp)
@@ -205,16 +256,22 @@ export default function PlanetScene() {
   }, [])
 
   // The whole system tilts a little toward the pointer
+  const tiltFrame = useRef(0)
   const onMove = (e: React.PointerEvent) => {
-    const el = tiltRef.current
-    if (!el || e.pointerType === 'touch') return
-    const r = el.getBoundingClientRect()
-    el.style.setProperty('--rx', `${((r.top + r.height / 2 - e.clientY) / r.height) * 10}deg`)
-    el.style.setProperty('--ry', `${((e.clientX - r.left - r.width / 2) / r.width) * 12}deg`)
+    if (e.pointerType === 'touch' || tiltFrame.current) return
+    const { clientX, clientY } = e
+    tiltFrame.current = requestAnimationFrame(() => {
+      tiltFrame.current = 0
+      const el = tiltRef.current, scene = sceneRef.current
+      if (!el || !scene) return
+      const r = scene.getBoundingClientRect()
+      el.style.transform = `rotateX(${(((r.top + r.height / 2 - clientY) / r.height) * 10).toFixed(2)}deg) rotateY(${(((clientX - r.left - r.width / 2) / r.width) * 12).toFixed(2)}deg)`
+    })
   }
   const onLeave = () => {
-    tiltRef.current?.style.setProperty('--rx', '0deg')
-    tiltRef.current?.style.setProperty('--ry', '0deg')
+    cancelAnimationFrame(tiltFrame.current)
+    tiltFrame.current = 0
+    if (tiltRef.current) tiltRef.current.style.transform = 'none'
   }
 
   return (
@@ -243,12 +300,12 @@ export default function PlanetScene() {
           {ORBITS.map((o, i) => <OrbitArc key={i} o={o} w={w} half="front" />)}
         </svg>
 
-        <div className="pl-sats" onPointerEnter={() => { paused.current = true }} onPointerLeave={() => { paused.current = false; setHovered(null) }}>
+        <div className="pl-sats" onPointerEnter={() => hold(true)} onPointerLeave={() => { hold(false); setHovered(null) }}>
           {SATELLITES.map((s, i) => (
             <a key={s.name} href="/#skills" ref={el => { satRefs.current[i] = el }} className="pl-sat"
               style={{ '--c': s.color } as React.CSSProperties}
               onPointerEnter={() => setHovered(s.name)}
-              onFocus={() => { paused.current = true; setHovered(s.name) }} onBlur={() => { paused.current = false; setHovered(null) }}
+              onFocus={() => { hold(true); setHovered(s.name) }} onBlur={() => { hold(false); setHovered(null) }}
               aria-label={`${s.name}: ${DESC[s.name]}`}
             >
               <span className="pl-sat-dot" />{SHORT[s.name] ?? s.name}
@@ -270,8 +327,8 @@ export default function PlanetScene() {
       </div>
 
       <style>{`
-        .pl-scene { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; margin: 0 auto; perspective: 1100px; --boost: 0; }
-        .pl-tilt { position: absolute; inset: 0; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+        .pl-scene { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; margin: 0 auto; perspective: 1100px; }
+        .pl-tilt { position: absolute; inset: 0; transition: transform .4s cubic-bezier(.2,.8,.2,1); will-change: transform; }
         .pl-orbits { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; color: var(--fg-3); z-index: 1; }
         .pl-orbits-front { z-index: 3; pointer-events: none; color: var(--fg-2); }
 
@@ -312,30 +369,31 @@ export default function PlanetScene() {
           box-shadow: inset -14px -18px 36px rgba(0,10,40,.55), inset 6px 8px 22px rgba(255,255,255,.18); }
 
         .pl-sats { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
-        .pl-sat { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; font-weight: 600; color: var(--fg); text-decoration: none; padding: 6px 11px; border-radius: 99px; background: color-mix(in srgb, var(--bg) 92%, transparent); border: 1px solid color-mix(in srgb, var(--c) 45%, var(--border-2)); box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--c) 50%, transparent); will-change: transform, opacity; }
+        .pl-sat { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; font-weight: 600; color: var(--fg); text-decoration: none; padding: 6px 11px; border-radius: 99px; background: color-mix(in srgb, var(--bg) 92%, transparent); border: 1px solid color-mix(in srgb, var(--c) 45%, var(--border-2)); box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--c) 50%, transparent); will-change: transform; transition: opacity .3s linear; }
         .pl-sat:hover, .pl-sat:focus-visible { border-color: var(--c); outline: none; }
         .pl-sat-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
         .pl-tip { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); font-size: 11px; font-weight: 500; color: var(--bg); background: var(--fg); padding: 5px 9px; border-radius: 8px; white-space: nowrap; pointer-events: none; }
 
-        .pl-tag { position: absolute; z-index: 6; display: flex; align-items: center; gap: 9px; padding: 9px 13px; font-size: 12px; color: var(--fg-2); border-radius: 14px; background: color-mix(in srgb, var(--bg) 88%, transparent); border: 1px solid var(--border-2); box-shadow: 0 12px 30px -10px rgba(0,0,0,.35); animation: pl-float 6s ease-in-out infinite; }
+        .pl-tag { position: absolute; z-index: 6; contain: layout; display: flex; align-items: center; gap: 9px; padding: 9px 13px; font-size: 12px; color: var(--fg-2); border-radius: 14px; background: color-mix(in srgb, var(--bg) 88%, transparent); border: 1px solid var(--border-2); box-shadow: 0 12px 30px -10px rgba(0,0,0,.35); animation: pl-float 6s ease-in-out infinite; }
         .pl-tag strong { color: var(--fg); font-weight: 700; }
         .pl-tag-certs { top: 4%; left: 0; }
         .pl-tag-xp { bottom: 5%; right: 0; animation-delay: -3s; font-variant-numeric: tabular-nums; }
         .pl-tag-icon { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; color: #fff; background: #0ea5e9; }
         .pl-tag-icon svg { width: 14px; height: 14px; }
-        .pl-live { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.25); flex-shrink: 0; animation: pl-pulse 1.8s ease-in-out infinite; }
+        .pl-live { position: relative; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+        .pl-live::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: rgba(34,197,94,.35); animation: pl-pulse 1.8s ease-in-out infinite; }
         .pl-xp { display: flex; flex-direction: column; line-height: 1.3; }
         .pl-xp small { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
         .pl-meter { position: absolute; z-index: 6; left: 2%; bottom: 7%; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10.5px; font-variant-numeric: tabular-nums; color: var(--fg-3); padding: 5px 10px; border-radius: 99px; border: 1px dashed var(--border-2); pointer-events: none; }
-        .pl-meter svg { color: #38bdf8; animation: pl-turn 4s linear infinite; }
+        .pl-meter svg { color: #38bdf8; animation: pl-turn 4s linear infinite; will-change: transform; }
 
         @keyframes pl-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
-        @keyframes pl-pulse { 50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); } }
-        @keyframes pl-turn { to { rotate: 360deg; } }
+        @keyframes pl-pulse { 50% { transform: scale(1.8); opacity: 0; } }
+        @keyframes pl-turn { to { transform: rotate(360deg); } }
         @keyframes pl-shock { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -50%) scale(2.1); } }
         @media (max-width: 860px) { .pl-scene { max-width: 340px; } .pl-sat { font-size: 11px; padding: 5px 9px; } }
         @media (max-width: 420px) { .pl-scene { max-width: 300px; } .pl-tag { font-size: 11px; padding: 7px 10px; } .pl-meter { bottom: -2%; } }
-        @media (prefers-reduced-motion: reduce) { .pl-tag, .pl-live, .pl-meter svg { animation: none; } .pl-tilt, .pl-planet { transition: none; } }
+        @media (prefers-reduced-motion: reduce) { .pl-tag, .pl-live::after, .pl-meter svg { animation: none; } .pl-tilt, .pl-planet { transition: none; } }
       `}</style>
     </div>
   )

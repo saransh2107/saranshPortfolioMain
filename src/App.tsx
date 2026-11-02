@@ -7,7 +7,6 @@ import { ViewProvider, useView } from './context/ViewContext'
 import Preloader from './components/Preloader'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
-import FloatingTerminal from './components/FloatingTerminal'
 import CursorGlow from './components/CursorGlow'
 
 // The intro plays once per browser session
@@ -15,6 +14,7 @@ const introSeen = () => { try { return sessionStorage.getItem('intro-seen') === 
 const markIntroSeen = () => { try { sessionStorage.setItem('intro-seen', '1') } catch { /* private mode */ } }
 import Home from './pages/Home'
 
+const FloatingTerminal = lazy(() => import('./components/FloatingTerminal'))
 const BlogList   = lazy(() => import('./pages/BlogList'))
 const BlogDetail = lazy(() => import('./pages/BlogDetail'))
 const SalesforceApp = lazy(() => import('./salesforce/SalesforceApp'))
@@ -85,7 +85,7 @@ export default function App() {
         {/* Floating terminal */}
         <AnimatePresence>
           {terminalOpen && (
-            <FloatingTerminal onClose={() => setTerminalOpen(false)} />
+            <Suspense fallback={null}><FloatingTerminal onClose={() => setTerminalOpen(false)} /></Suspense>
           )}
         </AnimatePresence>
 

@@ -1,6 +1,7 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { certs } from '../data/resume'
+import SectionHead from './SectionHead'
 
 export default function Certifications() {
   const ref = useRef(null)
@@ -10,13 +11,7 @@ export default function Certifications() {
   return (
     <section id="certifications" className="section" ref={ref}>
       <div className="container">
-        <motion.p {...v(0)} className="section-label">03 — Certifications</motion.p>
-        <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 8 }}>
-          6 Salesforce Certifications
-        </motion.h2>
-        <motion.p {...v(0.08)} style={{ fontSize: 14, color: 'var(--fg-3)', marginBottom: 40 }}>
-          Certified expertise across the Salesforce platform.
-        </motion.p>
+        <SectionHead label="03 — Certifications" title="Six times *certified*" aside="Certified expertise across the Salesforce platform." />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }} className="cert-grid">
           {certs.map((cert, i) => (
@@ -58,7 +53,7 @@ export default function Certifications() {
               <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', lineHeight: 1.35, marginBottom: 8 }}>
                 {cert.name}
               </h3>
-              <p style={{ fontSize: 12, color: 'var(--fg-3)', lineHeight: 1.55 }}>
+              <p className="cert-desc" style={{ fontSize: 12, color: 'var(--fg-3)', lineHeight: 1.55 }}>
                 {cert.desc}
               </p>
 
@@ -75,7 +70,7 @@ export default function Certifications() {
       </div>
       <style>{`
         @media (max-width: 768px) { .cert-grid { grid-template-columns: repeat(2,1fr) !important; } }
-        @media (max-width: 480px) { .cert-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width: 480px) { .cert-grid { gap: 8px !important; } .cert-grid > div { padding: 14px !important; } .cert-desc { display: none; } }
       `}</style>
     </section>
   )

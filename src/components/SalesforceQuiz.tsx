@@ -1,6 +1,7 @@
 import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { useState, useRef } from 'react'
 import { questions, SCORE_MESSAGES } from '../data/quiz'
+import SectionHead from './SectionHead'
 
 
 export default function SalesforceQuiz() {
@@ -37,17 +38,17 @@ export default function SalesforceQuiz() {
   return (
     <section id="quiz" className="section" ref={ref}>
       <div className="container">
-        <motion.p {...v(0)} className="section-label">06 — Interactive</motion.p>
-        <motion.h2 {...v(0.05)} style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--fg)', marginBottom: 8 }}>
-          Salesforce Quiz
-        </motion.h2>
-        <motion.p {...v(0.08)} style={{ fontSize: 14, color: 'var(--fg-3)', marginBottom: 40 }}>
-          Think you know Salesforce? Test yourself with {questions.length} quick questions.
-        </motion.p>
+        <div className="split">
+        <div>
+          <SectionHead compact label="06 — Interactive" title="Salesforce *quiz*" />
+          <motion.p {...v(0.08)} style={{ fontSize: 15.5, color: 'var(--fg-2)', lineHeight: 1.7, maxWidth: 420 }}>
+            Think you know Salesforce? Test yourself with {questions.length} quick questions.
+          </motion.p>
+        </div>
 
-        <motion.div {...v(0.12)} style={{ maxWidth: 600, border: '1px solid var(--border)', borderRadius: 16, background: 'var(--bg-2)', overflow: 'hidden' }}>
+        <motion.div {...v(0.12)} style={{ border: '1px solid var(--border)', borderRadius: 16, background: 'var(--bg-2)', overflow: 'hidden' }}>
           {!started ? (
-            <div style={{ padding: '48px 40px', textAlign: 'center' }}>
+            <div style={{ padding: 'clamp(24px, 3.5vw, 36px) clamp(18px, 3vw, 32px)', textAlign: 'center' }}>
               <div style={{ fontSize: 52, marginBottom: 20 }}>⚡</div>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--fg)', marginBottom: 10 }}>
                 Salesforce Knowledge Challenge
@@ -65,7 +66,7 @@ export default function SalesforceQuiz() {
               </motion.button>
             </div>
           ) : done ? (
-            <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} style={{ padding: '48px 40px', textAlign: 'center' }}>
+            <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} style={{ padding: 'clamp(24px, 3.5vw, 36px) clamp(18px, 3vw, 32px)', textAlign: 'center' }}>
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.2 }} style={{ fontSize: 64, marginBottom: 16 }}>
                 {scoreMsg.emoji}
               </motion.div>
@@ -163,6 +164,7 @@ export default function SalesforceQuiz() {
             </div>
           )}
         </motion.div>
+        </div>
       </div>
     </section>
   )
