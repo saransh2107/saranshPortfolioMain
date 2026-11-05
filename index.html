@@ -5,8 +5,18 @@
     <!-- Right colours from the first paint: no white flash while the app loads -->
     <script>
       (function () {
-        var theme = 'dark'
-        try { theme = localStorage.getItem('theme') || 'dark' } catch (e) {}
+        // Light while the Sun is up over the middle of India (21N 79E), as in src/lib/sky.ts
+        var now = Date.now(), r = Math.PI / 180, d = now / 864e5 - 10957.5
+        var g = (357.528 + .9856003 * d) * r
+        var l = (280.46 + .9856474 * d + 1.915 * Math.sin(g) + .02 * Math.sin(2 * g)) * r
+        var eps = (23.439 - 4e-7 * d) * r
+        var t = (280.46061837 + 360.98564736629 * d + 79) * r, lat = 21 * r
+        var up = Math.sin(eps) * Math.sin(l) * Math.sin(lat) + Math.cos(lat) * (Math.cos(l) * Math.cos(t) + Math.cos(eps) * Math.sin(l) * Math.sin(t))
+        var theme = up > -.01449 ? 'light' : 'dark'
+        try {
+          var held = JSON.parse(localStorage.getItem('theme-override'))
+          if (held && held.until > now) theme = held.theme
+        } catch (e) {}
         if (theme === 'dark') document.documentElement.classList.add('dark')
       })()
     </script>

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
+import IstClock from './IstClock'
 import { useView } from '../context/ViewContext'
 import { CloudIcon } from '../salesforce/ui'
 
@@ -73,8 +74,11 @@ export default function Navbar() {
           }}>
             <img src="/profile.webp" alt="Saransh Batham" width={30} height={30} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 12%', transform: 'scale(1.6)', transformOrigin: 'center top' }} />
           </div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
-            Saransh Batham
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <span style={{ fontSize: 14, lineHeight: 1.2, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
+              Saransh Batham
+            </span>
+            <IstClock />
           </span>
         </Link>
 

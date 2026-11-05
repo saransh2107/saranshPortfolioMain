@@ -212,3 +212,7 @@ portfolio/
 - The Salesforce credentials never reach the browser; they stay in serverless functions
 - Blog body supports Salesforce rich text HTML (rendered safely)
 - The terminal easter egg supports commands: `help`, `whoami`, `skills`, `certs`, `contact`, `blog`, `matrix`, `clear`, `exit`
+
+## Image credits
+
+`public/sky/` uses public-domain imagery: Earth and city lights from NASA Earth Observatory, the Moon from NASA/GSFC/Arizona State University (LRO), the Sun from NASA/SDO. The cloud map is by [Solar System Scope](https://www.solarsystemscope.com/textures/), based on NASA data, under CC BY 4.0.

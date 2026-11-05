@@ -39,6 +39,9 @@ export default function Footer() {
         {/* Brand */}
         <p className="text-sm" style={{ color: 'var(--fg-3)' }}>
           Saransh Batham &nbsp;·&nbsp; Salesforce Developer
+          <small style={{ display: 'block', fontSize: 10.5, marginTop: 2 }}>
+            Earth, Moon and Sun imagery: NASA. Cloud map: <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Solar System Scope</a> (CC BY 4.0).
+          </small>
         </p>
 
         {/* Socials */}

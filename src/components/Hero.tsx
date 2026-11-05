@@ -5,6 +5,7 @@ import { useExperience, experienceLabel } from '../hooks/useExperience'
 import { useBlogPosts } from '../hooks/useBlogPosts'
 import TrailheadIcon from './TrailheadIcon'
 import PlanetScene from './PlanetScene'
+import Sky from './Sky'
 import { isDiwaliOver } from '../diwali/expiry'
 
 const BUILDS = [
@@ -142,11 +143,8 @@ export default function Hero() {
         </div>
       ))}
 
-      {/* The sun drops in at the top when switching to light mode; the moon rises back for dark mode */}
-      <div ref={depth(4)} className="hero-sky" aria-hidden>
-        <div className="hero-sun"><span className="hero-sun-rays" /><span className="hero-sun-core" /></div>
-        <div className="hero-moon" />
-      </div>
+      {/* Real images of both, placed where they truly are. The sun drops in at the top when switching to light mode; the moon rises back for dark mode */}
+      <Sky ref={depth(4)} />
 
       <div className="container" style={{ position: 'relative' }}>
         <div className="hero-grid">
@@ -250,29 +248,19 @@ export default function Hero() {
         @keyframes hero-twinkle { from { opacity: 1; } to { opacity: .35; } }
 
         /* Sky: the sun hangs above the scene in light mode, the moon in dark mode */
-        .hero-sky { position: absolute; top: 76px; left: 54%; width: 96px; height: 96px; pointer-events: none; will-change: transform; }
-        .hero-sun, .hero-moon { position: absolute; inset: 0; transition: transform 1.3s cubic-bezier(.22,1.2,.36,1), opacity .9s ease; }
+        /* Each body sits above the Earth, shifted east or west by where it really is (--x, from -1 to 1) */
+        .hero-sky { --sky-size: 96px; --sky-centre: min(72%, calc(50% + 306px)); --sky-span: min(14%, 190px); position: absolute; top: 76px; left: 0; right: 0; height: var(--sky-size); pointer-events: none; will-change: transform; }
+        .hero-sun, .hero-moon { position: absolute; top: 0; width: var(--sky-size); height: var(--sky-size); left: calc(var(--sky-centre) + var(--x, 0) * var(--sky-span) - var(--sky-size) / 2); transition: transform 1.3s cubic-bezier(.22,1.2,.36,1), opacity .9s ease; }
         .hero-sun { transform: translateY(0) scale(1); opacity: 1; }
         :root.dark .hero-sun { transform: translateY(-240px) scale(.5); opacity: 0; transition-duration: .8s; }
-        :root.dark .hero-sun-rays { animation-play-state: paused; }
-        .hero-sun-core { position: absolute; inset: 22%; border-radius: 50%; background: radial-gradient(circle at 40% 38%, #fffbe6 0%, #ffe066 35%, #ffb020 75%, #ff8a1f 100%);
-          box-shadow: 0 0 30px 8px rgba(255,190,60,.55), 0 0 90px 30px rgba(255,170,40,.25); }
-        .hero-sun-rays { position: absolute; inset: -30%; border-radius: 50%; opacity: .55; animation: hero-rays 40s linear infinite;
-          background: repeating-conic-gradient(from 0deg, rgba(255,196,70,.55) 0deg 5deg, transparent 5deg 22.5deg);
-          -webkit-mask: radial-gradient(circle, transparent 30%, #000 34%, transparent 70%); mask: radial-gradient(circle, transparent 30%, #000 34%, transparent 70%); }
-        /* Full moon: craters over a lit disc, shaded on one edge for roundness */
-        .hero-moon { inset: 22%; border-radius: 50%; transform: translateY(-200px) scale(.6); opacity: 0;
-          background:
-            radial-gradient(circle at 34% 30%, rgba(120,118,150,.5) 0 8%, transparent 9%),
-            radial-gradient(circle at 62% 24%, rgba(120,118,150,.32) 0 5%, transparent 6%),
-            radial-gradient(circle at 70% 56%, rgba(120,118,150,.42) 0 11%, transparent 12%),
-            radial-gradient(circle at 40% 66%, rgba(120,118,150,.36) 0 7%, transparent 8%),
-            radial-gradient(circle at 22% 54%, rgba(120,118,150,.24) 0 4%, transparent 5%),
-            radial-gradient(circle at 56% 82%, rgba(120,118,150,.26) 0 4%, transparent 5%),
-            radial-gradient(circle at 38% 34%, #fbfaff 0%, #e6e3f5 58%, #bdb9d6 100%);
-          box-shadow: 0 0 26px 6px rgba(205,198,255,.32), 0 0 70px 20px rgba(170,160,255,.14), inset -5px -6px 12px rgba(60,55,95,.35); }
+        .hero-sun-core { position: absolute; inset: 24%; border-radius: 50%;
+          /* The observatory image is deep orange; light over it gives the white-hot look the eye sees */
+          background: radial-gradient(circle, rgba(255,253,240,.98) 0%, rgba(255,244,200,.9) 52%, rgba(255,214,120,.62) 80%, rgba(255,170,60,.25) 100%), url(/sky/sun.webp) center / 106% no-repeat;
+          box-shadow: 0 0 10px 3px rgba(255,244,205,1), 0 0 30px 12px rgba(255,214,120,.62), 0 0 80px 30px rgba(255,180,70,.3), 0 0 150px 60px rgba(255,160,60,.12); }
+        .hero-moon { transform: translateY(-200px) scale(.6); opacity: 0; }
+        .hero-moon-disc { position: absolute; inset: 24%; border-radius: 50%; overflow: hidden; background: url(/sky/moon.webp) center / cover no-repeat; filter: brightness(1.6) contrast(1.08); }
+        .hero-moon-disc svg { display: block; width: 100%; height: 100%; }
         :root.dark .hero-moon { transform: translateY(0) scale(1); opacity: 1; transition-delay: .25s; }
-        @keyframes hero-rays { to { rotate: 360deg; } }
         .hero-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 48px; align-items: center; }
         .hero-copy { min-width: 0; }
 
@@ -324,7 +312,7 @@ export default function Hero() {
           .hero-copy { display: flex; flex-direction: column; align-items: center; text-align: center; }
           .hero-badges, .hero-ctas, .hero-build { justify-content: center; }
           .hero-bio { margin-left: auto; margin-right: auto; }
-          .hero-sky { left: auto; right: 6%; top: 64px; width: 64px; height: 64px; }
+          .hero-sky { --sky-size: 64px; --sky-centre: 50%; --sky-span: 36%; top: 60px; }
         }
         @media (max-width: 480px) {
           .nudge-long { display: none; }
@@ -334,7 +322,7 @@ export default function Hero() {
           .hero-build { flex-wrap: nowrap; justify-content: center; gap: 0 .4em; font-size: min(20px, 4.6vw); white-space: nowrap; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .project-nudge::after, .nudge-arrow, .blog-btn-new, .blog-new-badge::after, .hero-aurora i, .hero-stars i, .hero-sun-rays { animation: none; }
+          .project-nudge::after, .nudge-arrow, .blog-btn-new, .blog-new-badge::after, .hero-aurora i, .hero-stars i { animation: none; }
           .hero-sun, .hero-moon { transition: opacity .3s; }
         }
       `}</style>
